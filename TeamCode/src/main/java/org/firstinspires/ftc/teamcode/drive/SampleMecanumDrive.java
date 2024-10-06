@@ -94,10 +94,11 @@ public class SampleMecanumDrive extends MecanumDrive {
         }
 
         // TODO: adjust the names of the following hardware devices to match your configuration
-        imu = hardwareMap.get(IMU.class, "imu");
-        IMU.Parameters parameters = new IMU.Parameters(new RevHubOrientationOnRobot(
-                DriveConstants.LOGO_FACING_DIR, DriveConstants.USB_FACING_DIR));
-        imu.initialize(parameters);
+// Below commented out according to suggestions of https://learnroadrunner.com/dead-wheels.html#deleting-the-imu
+//        imu = hardwareMap.get(IMU.class, "imu");
+//        IMU.Parameters parameters = new IMU.Parameters(new RevHubOrientationOnRobot(
+//                DriveConstants.LOGO_FACING_DIR, DriveConstants.USB_FACING_DIR));
+//        imu.initialize(parameters);
 
         leftFront = hardwareMap.get(DcMotorEx.class, "lfMtr");
         leftRear = hardwareMap.get(DcMotorEx.class, "lbMtr");
@@ -290,12 +291,14 @@ public class SampleMecanumDrive extends MecanumDrive {
 
     @Override
     public double getRawExternalHeading() {
-        return imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
+//        return imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
+        return 0;
     }
 
     @Override
     public Double getExternalHeadingVelocity() {
-        return (double) imu.getRobotAngularVelocity(AngleUnit.RADIANS).xRotationRate;
+//        return (double) imu.getRobotAngularVelocity(AngleUnit.RADIANS).xRotationRate;
+        return 0.0;
     }
 
     public static TrajectoryVelocityConstraint getVelocityConstraint(double maxVel, double maxAngularVel, double trackWidth) {

@@ -1,13 +1,10 @@
 package org.firstinspires.ftc.teamcode.drive.opmode;
 
 import com.acmerobotics.roadrunner.geometry.Pose2d;
-import com.acmerobotics.roadrunner.localization.TwoTrackingWheelLocalizer;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.Servo;
@@ -17,8 +14,6 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
 import org.firstinspires.ftc.teamcode.drive.PoseStorage;
 import org.firstinspires.ftc.teamcode.drive.SampleMecanumDrive;
-import org.firstinspires.ftc.teamcode.drive.StandardTrackingWheelLocalizer;
-import org.firstinspires.ftc.teamcode.drive.TwoWheelTrackingLocalizer;
 
 @TeleOp(name="Basic Drive", group="Linear OpMode")
 public class drive extends LinearOpMode{
@@ -33,8 +28,10 @@ public class drive extends LinearOpMode{
     private Servo claw = null;
     private Servo extension = null;
     private Servo twist = null;
-    private double twistVertMin = 0.0;
-    private double twistVertMax = 0.5;
+    private final double TWISTVERTMIN = 0.0;
+    private final double TWISTVERTMAX = 0.5;
+    private final double CLAWOPEN = 0.75;
+    private final double CLAWCLOSE = 0.45;
     private IMU imu = null;
     private double robotAngle;
 
@@ -94,9 +91,9 @@ public class drive extends LinearOpMode{
         extension = hardwareMap.get(Servo.class, "extension");
         twist = hardwareMap.get(Servo.class, "twist");
 
-        claw.setPosition(1);
-        extension.setPosition(1);
-        twist.setPosition(twistVertMin);
+        claw.setPosition(0.75);
+        extension.setPosition(0);
+        twist.setPosition(TWISTVERTMIN);
 
         // IMU
         myIMUparameters = new IMU.Parameters(
@@ -218,21 +215,21 @@ public class drive extends LinearOpMode{
             // Twist
             if (gamepad2.dpad_right){
                 // set motors to run forward for 5000 encoder counts.
-                twist.setPosition(twistVertMax);
+                twist.setPosition(TWISTVERTMAX);
             }
             else if (gamepad2.dpad_left) {
                 // set motors to run forward for 5000 encoder counts.
-                twist.setPosition(twistVertMin);
+                twist.setPosition(TWISTVERTMIN);
             }
 
             // Claw
             if (gamepad2.b){
                 // set motors to run forward for 5000 encoder counts.
-                claw.setPosition(1.0);
+                claw.setPosition(CLAWOPEN);
             }
             else if (gamepad2.x) {
                 // set motors to run forward for 5000 encoder counts.
-                claw.setPosition(0);
+                claw.setPosition(CLAWCLOSE);
             }
 
             // Adjustments

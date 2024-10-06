@@ -33,7 +33,8 @@ public class drive extends LinearOpMode{
     private Servo claw = null;
     private Servo extension = null;
     private Servo twist = null;
-    private double twistVert = 0.3;
+    private double twistVertMin = 0.0;
+    private double twistVertMax = 0.5;
     private IMU imu = null;
     private double robotAngle;
 
@@ -57,7 +58,6 @@ public class drive extends LinearOpMode{
         leftBackDrive  = hardwareMap.get(DcMotor.class, "lbMtr");
         rightFrontDrive = hardwareMap.get(DcMotor.class, "rfMtr");
         rightBackDrive = hardwareMap.get(DcMotor.class, "rbMtr");
-
         // Set directions of motors
         leftFrontDrive.setDirection(DcMotor.Direction.REVERSE);
         leftBackDrive.setDirection(DcMotor.Direction.REVERSE);
@@ -96,7 +96,7 @@ public class drive extends LinearOpMode{
 
         claw.setPosition(1);
         extension.setPosition(1);
-        twist.setPosition(twistVert);
+        twist.setPosition(twistVertMin);
 
         // IMU
         myIMUparameters = new IMU.Parameters(
@@ -140,8 +140,8 @@ public class drive extends LinearOpMode{
             double max;
 
             // POV Mode uses left joystick to go forward & strafe, and right joystick to rotate.
-            double axial_target   = -gamepad1.left_stick_y;  // Note: pushing stick forward gives negative value
-            double lateral_target     =  gamepad1.left_stick_x;
+            double axial_target   = -gamepad1.left_stick_x;  // Note: pushing stick forward gives negative value
+            double lateral_target     =  -gamepad1.left_stick_y;
             double axial_real = axial_target*Math.sin(robotAngle) + lateral_target*Math.cos(robotAngle);
             double lateral_real = -axial_target*Math.cos(robotAngle) + lateral_target*Math.sin(robotAngle);
             double yaw     =  gamepad1.right_stick_x;
@@ -218,11 +218,11 @@ public class drive extends LinearOpMode{
             // Twist
             if (gamepad2.dpad_right){
                 // set motors to run forward for 5000 encoder counts.
-                twist.setPosition(1.0);
+                twist.setPosition(twistVertMax);
             }
             else if (gamepad2.dpad_left) {
                 // set motors to run forward for 5000 encoder counts.
-                twist.setPosition(twistVert);
+                twist.setPosition(twistVertMin);
             }
 
             // Claw
@@ -263,9 +263,3 @@ public class drive extends LinearOpMode{
         }
     }
 }
-
-
-
-
-
-

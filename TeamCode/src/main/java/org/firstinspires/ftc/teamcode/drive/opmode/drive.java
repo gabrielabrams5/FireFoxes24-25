@@ -32,8 +32,12 @@ public class drive extends LinearOpMode{
     private final double TWISTVERTMAX = 0.5;
     private final double CLAWOPEN = 0.75;
     private final double CLAWCLOSE = 0.45;
+    private final double LINEARSLIDEMAX = 2500;
     private IMU imu = null;
     private double robotAngle;
+
+    private double ls1Target = 0;
+    private double ls2Target = 0;
 
     IMU.Parameters myIMUparameters;
     YawPitchRollAngles robotOrientation;
@@ -67,7 +71,6 @@ public class drive extends LinearOpMode{
         rightFrontDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         rightBackDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
-
         // Initialize the linear slides
         linearSlide1 = hardwareMap.get(DcMotor.class, "ls1");
         linearSlide2 = hardwareMap.get(DcMotor.class, "ls2");
@@ -93,7 +96,7 @@ public class drive extends LinearOpMode{
 
         claw.setPosition(0.75);
         extension.setPosition(0);
-        twist.setPosition(TWISTVERTMIN);
+        twist.setPosition(0.75);
 
         // IMU
         myIMUparameters = new IMU.Parameters(
@@ -108,7 +111,6 @@ public class drive extends LinearOpMode{
         // Init localizer
         SampleMecanumDrive drive = new SampleMecanumDrive(hardwareMap);
         drive.setPoseEstimate(PoseStorage.currentPose);
-
 
         // Wait for the game to start (driver presses START)
         telemetry.addData("Status", "Initialized");
@@ -178,29 +180,42 @@ public class drive extends LinearOpMode{
             }
 
             // Linear slides
-            if (gamepad2.dpad_down){
+            if (gamepad2.dpad_up){
                 // set motors to run forward for 5000 encoder counts.
-                linearSlide1.setTargetPosition(3000);
-                linearSlide2.setTargetPosition(3000);
-                // set motors to run to target encoder position and stop with brakes on.
-                linearSlide1.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                linearSlide2.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                // set motors to run to target encoder position and stop with brakes on.
-                linearSlide1.setPower(0.5);
-                linearSlide2.setPower(0.5);
+                ls1Target = LINEARSLIDEMAX;
+                ls2Target = LINEARSLIDEMAX;
+//                linearSlide1.setTargetPosition(3000);
+//                linearSlide2.setTargetPosition(3000);
+//                // set motors to run to target encoder position and stop with brakes on.
+//                linearSlide1.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+//                linearSlide2.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+//                // set motors to run to target encoder position and stop with brakes on.
+//                linearSlide1.setPower(0.5);
+//                linearSlide2.setPower(0.5);
             }
-            else if (gamepad2.dpad_up){
-                linearSlide1.setTargetPosition(0);
-                linearSlide2.setTargetPosition(0);
-                linearSlide1.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                linearSlide2.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                linearSlide1.setPower(0.5);
-                linearSlide2.setPower(0.5);
+            else if (gamepad2.dpad_down){
+                ls1Target = 200;
+                ls2Target = 200;
+//                linearSlide1.setTargetPosition(0);
+//                linearSlide2.setTargetPosition(0);
+//                linearSlide1.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+//                linearSlide2.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+//                linearSlide1.setPower(0.5);
+//                linearSlide2.setPower(0.5);
             }
             // Adjustments
-            double linearAdjustment = (gamepad2.left_stick_y*10);
-            linearSlide1.setTargetPosition((int) (linearSlide1.getCurrentPosition()+linearAdjustment));
-            linearSlide2.setTargetPosition((int) (linearSlide2.getCurrentPosition()+linearAdjustment));
+            double linearAdjustment = (gamepad2.left_stick_y*20);
+            ls1Target-=linearAdjustment;
+            ls2Target-=linearAdjustment;
+//            linearSlide1.setTargetPosition((int) (linearSlide1.getCurrentPosition()+linearAdjustment));
+//            linearSlide2.setTargetPosition((int) (linearSlide2.getCurrentPosition()+linearAdjustment));
+
+            linearSlide1.setTargetPosition((int)ls1Target);
+            linearSlide2.setTargetPosition((int)ls2Target);
+            linearSlide1.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            linearSlide2.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            linearSlide1.setPower(0.5);
+            linearSlide2.setPower(0.5);
 
             // Servos
             // Extension
@@ -236,7 +251,6 @@ public class drive extends LinearOpMode{
             double extensionAdjustment = (gamepad2.right_stick_x/128);
             extension.setPosition(extension.getPosition()+extensionAdjustment);
 
-
             // Send calculated power to wheels, convert power to rpm
             leftFrontDrive.setPower(leftFrontPower);
             rightFrontDrive.setPower(rightFrontPower);
@@ -253,7 +267,8 @@ public class drive extends LinearOpMode{
             telemetry.addData("Extension", "Position: " + extension.getPosition());
             telemetry.addData("Claw", "Position: " + claw.getPosition());
             telemetry.addData("Twist", "Position: " + twist.getPosition());
-            telemetry.addData("Linear Slides", "LS1 Position: " + linearSlide1.getCurrentPosition() + "LS2 Position: " + linearSlide2.getCurrentPosition());
+            telemetry.addData("Linear Slides Real", "LS1 Position: " + linearSlide1.getCurrentPosition() + "LS2 Position: " + linearSlide2.getCurrentPosition());
+            telemetry.addData("Linear Slides Target", "LS1 Target: " + ls1Target + "LS2 Target: " + ls2Target);
             telemetry.addData("Front left/Right", "%4.2f, %4.2f", leftFrontPower, rightFrontPower);
             telemetry.addData("Back  left/Right", "%4.2f, %4.2f", leftBackPower, rightBackPower);
             telemetry.update();

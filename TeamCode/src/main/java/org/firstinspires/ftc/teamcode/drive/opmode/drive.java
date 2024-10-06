@@ -1,13 +1,10 @@
 package org.firstinspires.ftc.teamcode.drive.opmode;
 
-import com.acmerobotics.roadrunner.geometry.Pose2d;
-import com.acmerobotics.roadrunner.localization.TwoTrackingWheelLocalizer;
+import com.acmerobotics.roadrunner.Pose2d;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.Servo;
@@ -15,10 +12,8 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
+import org.firstinspires.ftc.teamcode.MecanumDrive;
 import org.firstinspires.ftc.teamcode.drive.PoseStorage;
-import org.firstinspires.ftc.teamcode.drive.SampleMecanumDrive;
-import org.firstinspires.ftc.teamcode.drive.StandardTrackingWheelLocalizer;
-import org.firstinspires.ftc.teamcode.drive.TwoWheelTrackingLocalizer;
 
 @TeleOp(name="Basic Drive", group="Linear OpMode")
 public class drive extends LinearOpMode{
@@ -86,7 +81,7 @@ public class drive extends LinearOpMode{
         // ########################################################################################
         // !!!            IMPORTANT Drive Information. Test your motor directions.            !!!!!
         // ########################################################################################
-        linearSlide1.setDirection(DcMotorSimple.Direction.REVERSE);
+        linearSlide1.setDirection(DcMotorSimple.Direction.FORWARD);
         linearSlide2.setDirection(DcMotorSimple.Direction.FORWARD);
 
         // Initialize servos
@@ -109,8 +104,7 @@ public class drive extends LinearOpMode{
         imu = hardwareMap.get(IMU.class, "imu");
 
         // Init localizer
-        SampleMecanumDrive drive = new SampleMecanumDrive(hardwareMap);
-        drive.setPoseEstimate(PoseStorage.currentPose);
+        MecanumDrive drive = new MecanumDrive(hardwareMap, PoseStorage.currentPose);
 
 
         // Wait for the game to start (driver presses START)
@@ -124,7 +118,7 @@ public class drive extends LinearOpMode{
         while (opModeIsActive()) {
 
             // Get Pose
-            Pose2d myPose = drive.getPoseEstimate();
+            Pose2d myPose = drive.pose;
 
             // Get IMU data
             robotOrientation = imu.getRobotYawPitchRollAngles();
@@ -135,7 +129,7 @@ public class drive extends LinearOpMode{
             double Pitch = robotOrientation.getPitch(AngleUnit.DEGREES);
             double Roll  = robotOrientation.getRoll(AngleUnit.DEGREES);
 
-            robotAngle = myPose.getHeading(); // Change to right one
+            robotAngle = myPose.heading.real; // Change to right one
 
             double max;
 
@@ -250,8 +244,8 @@ public class drive extends LinearOpMode{
 
             // Show the elapsed game time and wheel power.
             telemetry.addData("Status", "Run Time: " + runtime.toString());
-            telemetry.addData("Position", "x: " + myPose.getX() + "y: " + myPose.getY());
-            telemetry.addData("Heading", "Angle: " + myPose.getHeading());
+            telemetry.addData("Position", "x: " + myPose.position.x + "y: " + myPose.position.y);
+            telemetry.addData("Heading", "Angle: " + myPose.heading.real);
             telemetry.addData("Vert slides", "Position: " + linearSlide1.getCurrentPosition());
             telemetry.addData("Extension", "Position: " + extension.getPosition());
             telemetry.addData("Claw", "Position: " + claw.getPosition());

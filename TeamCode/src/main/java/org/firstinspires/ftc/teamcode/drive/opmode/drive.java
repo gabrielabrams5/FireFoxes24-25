@@ -138,10 +138,10 @@ public class drive extends LinearOpMode {
             robotAngle = myPose.getHeading(); // CHANGE TO RIGHT ONE!!!
 
             // POV Mode uses left joystick to go forward & strafe, and right joystick to rotate.
-            double axial_target = -gamepad1.left_stick_x;  // Note: pushing stick forward gives negative value
-            double lateral_target = -gamepad1.left_stick_y;
-            double axial_real = axial_target * Math.sin(robotAngle) + lateral_target * Math.cos(robotAngle);
-            double lateral_real = -axial_target * Math.cos(robotAngle) + lateral_target * Math.sin(robotAngle);
+            double axial_target = -gamepad1.left_stick_y;  // Note: pushing stick forward gives negative value
+            double lateral_target = gamepad1.left_stick_x;
+            double axial_real = lateral_target * Math.cos(robotAngle) + axial_target * Math.sin(robotAngle);
+            double lateral_real = lateral_target * -Math.sin(robotAngle) + axial_target * Math.cos(robotAngle);
             double yaw = gamepad1.right_stick_x;
 
             double right_trigger = 1 + gamepad1.right_trigger;
@@ -166,10 +166,8 @@ public class drive extends LinearOpMode {
 
             // Normalize the values so no wheel power exceeds 100%
             // This ensures that the robot maintains the desired motion.
-            double max =
-                    Math.max(Math.max(Math.abs(leftFrontPower), Math.abs(rightFrontPower)),
-                            Math.max(Math.abs(leftBackPower), Math.abs(rightBackPower)));
-
+            double max = Math.max(Math.max(Math.abs(leftFrontPower), Math.abs(rightFrontPower)),
+                                  Math.max(Math.abs(leftBackPower), Math.abs(rightBackPower)));
             if (max > 1.0) {
                 leftFrontPower /= max;
                 rightFrontPower /= max;
@@ -191,6 +189,7 @@ public class drive extends LinearOpMode {
             linearSlide1Target -= linearAdjustment;
             linearSlide2Target -= linearAdjustment;
 
+            // Give Linear Slides target positions and power
             linearSlide1.setTargetPosition(linearSlide1Target);
             linearSlide2.setTargetPosition(linearSlide2Target);
             linearSlide1.setMode(DcMotor.RunMode.RUN_TO_POSITION);

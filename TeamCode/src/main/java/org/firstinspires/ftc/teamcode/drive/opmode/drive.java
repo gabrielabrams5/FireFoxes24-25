@@ -129,7 +129,10 @@ public class drive extends LinearOpMode{
             double Pitch = robotOrientation.getPitch(AngleUnit.DEGREES);
             double Roll  = robotOrientation.getRoll(AngleUnit.DEGREES);
 
-            robotAngle = myPose.heading.real; // Change to right one
+            if (myPose != null){
+                robotAngle = myPose.heading.real; // TODO: Change to right one
+            }
+
 
             double max;
 
@@ -244,8 +247,10 @@ public class drive extends LinearOpMode{
 
             // Show the elapsed game time and wheel power.
             telemetry.addData("Status", "Run Time: " + runtime.toString());
-            telemetry.addData("Position", "x: " + myPose.position.x + "y: " + myPose.position.y);
-            telemetry.addData("Heading", "Angle: " + myPose.heading.real);
+            if (myPose != null){
+                telemetry.addData("Position", "x: " + myPose.position.x + "y: " + myPose.position.y);
+                telemetry.addData("Heading", "Angle: " + myPose.heading.real);
+            }
             telemetry.addData("Vert slides", "Position: " + linearSlide1.getCurrentPosition());
             telemetry.addData("Extension", "Position: " + extension.getPosition());
             telemetry.addData("Claw", "Position: " + claw.getPosition());

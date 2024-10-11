@@ -1,6 +1,6 @@
 package org.firstinspires.ftc.teamcode.drive.opmode;
 
-import com.acmerobotics.roadrunner.geometry.Pose2d;
+import com.acmerobotics.roadrunner.Pose2d;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -11,8 +11,8 @@ import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
+import org.firstinspires.ftc.teamcode.MecanumDrive;
 import org.firstinspires.ftc.teamcode.drive.PoseStorage;
-import org.firstinspires.ftc.teamcode.drive.SampleMecanumDrive;
 
 @TeleOp(name="Basic Drive", group="Linear OpMode")
 public class drive extends LinearOpMode {
@@ -66,8 +66,8 @@ public class drive extends LinearOpMode {
         linearSlide1.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         linearSlide2.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         // Set linear slide motor directions
-        linearSlide1.setDirection(DcMotorSimple.Direction.REVERSE);
-        linearSlide2.setDirection(DcMotorSimple.Direction.FORWARD);
+        linearSlide1.setDirection(DcMotorSimple.Direction.FORWARD);
+        linearSlide2.setDirection(DcMotorSimple.Direction.REVERSE);
 
         // Initialize servos
         Servo claw = hardwareMap.get(Servo.class, "claw");
@@ -84,8 +84,7 @@ public class drive extends LinearOpMode {
         );
 
         // Initialize localizer
-        SampleMecanumDrive drive = new SampleMecanumDrive(hardwareMap);
-        drive.setPoseEstimate(PoseStorage.currentPose);
+        MecanumDrive drive = new MecanumDrive(hardwareMap, PoseStorage.currentPose);
 
         // Initialize mechanical position constants
         final double CLAW_START = 0.75;
@@ -123,7 +122,7 @@ public class drive extends LinearOpMode {
         while (opModeIsActive()) {
 
             // Get Pose
-            Pose2d myPose = drive.getPoseEstimate();
+            Pose2d myPose = drive.pose;
 
             // Get IMU data
             robotOrientation = imu.getRobotYawPitchRollAngles();
@@ -135,7 +134,7 @@ public class drive extends LinearOpMode {
             double Pitch = robotOrientation.getPitch(AngleUnit.DEGREES);
             double Roll = robotOrientation.getRoll(AngleUnit.DEGREES);
 
-            robotAngle = myPose.getHeading(); // CHANGE TO RIGHT ONE!!!
+            robotAngle = myPose.heading.real; // CHANGE TO RIGHT ONE!!!
 
             // POV Mode uses left joystick to go forward & strafe, and right joystick to rotate.
             double axial_target = -gamepad1.left_stick_y;  // Note: pushing stick forward gives negative value
@@ -211,7 +210,6 @@ public class drive extends LinearOpMode {
             } else if (gamepad2.dpad_left) {
                 twist.setPosition(TWIST_HIGH);
             }
-
             // Claw Servo
             if (gamepad2.b) {
                 claw.setPosition(CLAW_OPEN);
@@ -227,8 +225,8 @@ public class drive extends LinearOpMode {
 
             // Show the elapsed game time and wheel power.
             telemetry.addData("Status", "Run Time: " + runtime);
-            telemetry.addData("Position", "x: " + myPose.getX() + "y: " + myPose.getY());
-            telemetry.addData("Heading", "Angle: " + myPose.getHeading());
+            telemetry.addData("Position", "x: " + myPose.position.x + "y: " + myPose.position.y);
+            telemetry.addData("Heading", "Angle: " + myPose.heading.real);
             telemetry.addData("Extension: ", extension.getPosition());
             telemetry.addData("Claw: ", claw.getPosition());
             telemetry.addData("Twist: ", twist.getPosition());

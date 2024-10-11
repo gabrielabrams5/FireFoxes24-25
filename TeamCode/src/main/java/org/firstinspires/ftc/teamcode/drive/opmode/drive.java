@@ -1,6 +1,6 @@
 package org.firstinspires.ftc.teamcode.drive.opmode;
 
-import com.acmerobotics.roadrunner.geometry.Pose2d;
+import com.acmerobotics.roadrunner.Pose2d;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -11,8 +11,8 @@ import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
+import org.firstinspires.ftc.teamcode.MecanumDrive;
 import org.firstinspires.ftc.teamcode.drive.PoseStorage;
-import org.firstinspires.ftc.teamcode.drive.SampleMecanumDrive;
 
 @TeleOp(name="Basic Drive", group="Linear OpMode")
 public class drive extends LinearOpMode {
@@ -65,8 +65,12 @@ public class drive extends LinearOpMode {
         linearSlide2.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         linearSlide1.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         linearSlide2.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        // Set linear slide motor directions
-        linearSlide1.setDirection(DcMotorSimple.Direction.REVERSE);
+
+        // Set direction of linear slides
+        // ########################################################################################
+        // !!!            IMPORTANT Drive Information. Test your motor directions.            !!!!!
+        // ########################################################################################
+        linearSlide1.setDirection(DcMotorSimple.Direction.FORWARD);
         linearSlide2.setDirection(DcMotorSimple.Direction.FORWARD);
 
         // Initialize servos
@@ -83,9 +87,10 @@ public class drive extends LinearOpMode {
                 )
         );
 
-        // Initialize localizer
-        SampleMecanumDrive drive = new SampleMecanumDrive(hardwareMap);
-        drive.setPoseEstimate(PoseStorage.currentPose);
+        imu = hardwareMap.get(IMU.class, "imu");
+
+        // Init localizer
+        MecanumDrive drive = new MecanumDrive(hardwareMap, PoseStorage.currentPose);
 
         // Initialize mechanical position constants
         final double CLAW_START = 0.75;
@@ -123,7 +128,7 @@ public class drive extends LinearOpMode {
         while (opModeIsActive()) {
 
             // Get Pose
-            Pose2d myPose = drive.getPoseEstimate();
+            Pose2d myPose = drive.pose;
 
             // Get IMU data
             robotOrientation = imu.getRobotYawPitchRollAngles();
@@ -135,7 +140,12 @@ public class drive extends LinearOpMode {
             double Pitch = robotOrientation.getPitch(AngleUnit.DEGREES);
             double Roll = robotOrientation.getRoll(AngleUnit.DEGREES);
 
-            robotAngle = myPose.getHeading(); // CHANGE TO RIGHT ONE!!!
+            if (myPose != null){
+                robotAngle = myPose.heading.real; // TODO: Change to right one
+            }
+
+
+            double max;
 
             // POV Mode uses left joystick to go forward & strafe, and right joystick to rotate.
             double axial_target = -gamepad1.left_stick_y;  // Note: pushing stick forward gives negative value
@@ -226,14 +236,16 @@ public class drive extends LinearOpMode {
             rightBackDrive.setPower(rightBackPower);
 
             // Show the elapsed game time and wheel power.
-            telemetry.addData("Status", "Run Time: " + runtime);
-            telemetry.addData("Position", "x: " + myPose.getX() + "y: " + myPose.getY());
-            telemetry.addData("Heading", "Angle: " + myPose.getHeading());
-            telemetry.addData("Extension: ", extension.getPosition());
-            telemetry.addData("Claw: ", claw.getPosition());
-            telemetry.addData("Twist: ", twist.getPosition());
-            telemetry.addData("Linear Slides Real", "LS1 Position: " + linearSlide1.getCurrentPosition() + "LS2 Position: " + linearSlide2.getCurrentPosition());
-            telemetry.addData("Linear Slides Target", "LS1 Target: " + linearSlide1Target + "LS2 Target: " + linearSlide2Target);
+            telemetry.addData("Status", "Run Time: " + runtime.toString());
+            if (myPose != null){
+                telemetry.addData("Position", "x: " + myPose.position.x + "y: " + myPose.position.y);
+                telemetry.addData("Heading", "Angle: " + myPose.heading.real);
+            }
+            telemetry.addData("Vert slides", "Position: " + linearSlide1.getCurrentPosition());
+            telemetry.addData("Extension", "Position: " + extension.getPosition());
+            telemetry.addData("Claw", "Position: " + claw.getPosition());
+            telemetry.addData("Twist", "Position: " + twist.getPosition());
+            telemetry.addData("Linear Slides", "LS1 Position: " + linearSlide1.getCurrentPosition() + "LS2 Position: " + linearSlide2.getCurrentPosition());
             telemetry.addData("Front left/Right", "%4.2f, %4.2f", leftFrontPower, rightFrontPower);
             telemetry.addData("Back  left/Right", "%4.2f, %4.2f", leftBackPower, rightBackPower);
             telemetry.update();

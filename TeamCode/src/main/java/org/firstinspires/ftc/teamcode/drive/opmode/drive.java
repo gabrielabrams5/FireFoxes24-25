@@ -101,7 +101,7 @@ public class drive extends LinearOpMode {
         final double EXTENSION_IN = 0;
         final double TWIST_START = 0.75;
         final double TWIST_HIGH = 0.0;
-        final double TWIST_LOW = 0.5;
+        final double TWIST_LOW = 0.75;
         final int LINEAR_SLIDE_MIN = 200;
         final int LINEAR_SLIDE_MAX = 3500;
         // Initialize mechanical position variables

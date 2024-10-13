@@ -176,29 +176,20 @@ public class Autonomous extends LinearOpMode {
             telemetry.update();
         }
 
-        int startPosition = visionOutputPosition;
-        telemetry.addData("Starting Position", startPosition);
         telemetry.update();
         waitForStart();
 
         if (isStopRequested()) return;
 
-        Action trajectoryActionChosen;
-        if (startPosition == 1) {
-            trajectoryActionChosen = tab1.build();
-        } else if (startPosition == 2) {
-            trajectoryActionChosen = tab2.build();
-        } else {
-            trajectoryActionChosen = tab3.build();
-        }
+        Action trajectoryActionChosen = tab1.build();
 
         Actions.runBlocking(
                 new SequentialAction(
                         trajectoryActionChosen,
                         lift.liftUp(),
                         claw.openClaw(),
-                        lift.liftDown(),
-                        trajectoryActionCloseOut
+                        lift.liftDown()//,
+                        //trajectoryActionCloseOut
                 )
         );
     }

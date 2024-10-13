@@ -27,6 +27,7 @@ public class drive extends LinearOpMode {
      * Twist:
      *   HIGH   - Right dPad
      *   LOW    - Left dPad
+     *   ADJUST - Right Stick Y
      * Linear Slide:
      *   UP     - Up dPad
      *   DOWN   - Down dPad
@@ -93,25 +94,32 @@ public class drive extends LinearOpMode {
         MecanumDrive drive = new MecanumDrive(hardwareMap, PoseStorage.currentPose);
 
         // Initialize mechanical position constants
-        final double CLAW_START = 0.75;
+        final double CLAW_START = 0.9;
         final double CLAW_OPEN = 0.75;
         final double CLAW_CLOSE = 0.45;
         final double EXTENSION_START = 0;
         final double EXTENSION_OUT = 1.0;
         final double EXTENSION_IN = 0;
-        final double TWIST_START = 0.75;
-        final double TWIST_HIGH = 0.0;
-        final double TWIST_LOW = 0.75;
+        final double TWIST_START = 1.0;
+        final double TWIST_HIGH = 0.2;
+        final double TWIST_LOW = 0.6;
+        final int LINEAR_SLIDE_START = 50;
         final int LINEAR_SLIDE_MIN = 200;
-        final int LINEAR_SLIDE_MAX = 3500;
+        final int LINEAR_SLIDE_MAX = 3400;
         // Initialize mechanical position variables
-        int linearSlide1Target = 0;
-        int linearSlide2Target = 0;
+        int linearSlide1Target = LINEAR_SLIDE_START;
+        int linearSlide2Target = LINEAR_SLIDE_START;
         // Initialize robot position variables
         double robotAngle = 0;
         YawPitchRollAngles robotOrientation;
 
         // Set servos to start positions
+        linearSlide1.setTargetPosition(linearSlide1Target);
+        linearSlide2.setTargetPosition(linearSlide2Target);
+        linearSlide1.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        linearSlide2.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        linearSlide1.setPower(0.5);
+        linearSlide2.setPower(0.5);
         claw.setPosition(CLAW_START);
         extension.setPosition(EXTENSION_START);
         twist.setPosition(TWIST_START);
@@ -216,6 +224,7 @@ public class drive extends LinearOpMode {
             } else if (gamepad2.dpad_left) {
                 twist.setPosition(TWIST_HIGH);
             }
+            twist.setPosition(twist.getPosition() + (gamepad2.right_stick_y / 128));
 
             // Claw Servo
             if (gamepad2.b) {

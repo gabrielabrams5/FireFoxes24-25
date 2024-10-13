@@ -31,7 +31,7 @@ public class Autonomous extends LinearOpMode {
         }
 
         public class LiftUp implements Action {
-            private boolean initalized = false;
+            private boolean initialized = false;
 
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
@@ -60,7 +60,7 @@ public class Autonomous extends LinearOpMode {
         }
 
         public class LiftDown implements Action {
-            private boolean initalized = false;
+            private boolean initialized = false;
 
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
@@ -70,14 +70,14 @@ public class Autonomous extends LinearOpMode {
                     initialized = true;
                 }
 
-                double pos = lift.getCurrentPosition();
+                double pos = linearSlide1.getCurrentPosition();
                 packet.put("liftPos", pos);
                 if (pos > 200.0) {  // 200.0 is the LINEAR_SLIDE_MIN in drive.java, adjust here if adjusted elsewhere
                     // Keep lowering lift if it hasn't reached max height yet
                     return true;
                 } else {
                     // If lift is at desired position, stop raising
-                    lift.setPower(0);
+                    linearSlide1.setPower(0);
                     return false;
                 }
             }
@@ -154,7 +154,7 @@ public class Autonomous extends LinearOpMode {
 
     @Override
     public void runOpMode() {
-        Pose2d initialPose = new Pose2d(11.8, 61.7, Math.toRadians(90));
+        Pose2d initialPose = new Pose2d(0, 0, Math.toRadians(0));
         MecanumDrive drive = new MecanumDrive(hardwareMap, initialPose);
         Claw claw = new Claw(hardwareMap);
         Lift lift = new Lift(hardwareMap);

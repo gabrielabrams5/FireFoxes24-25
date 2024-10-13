@@ -27,6 +27,7 @@ public class drive extends LinearOpMode {
      * Twist:
      *   HIGH   - Right dPad
      *   LOW    - Left dPad
+     *   ADJUST - Right Stick Y
      * Linear Slide:
      *   UP     - Up dPad
      *   DOWN   - Down dPad
@@ -65,7 +66,11 @@ public class drive extends LinearOpMode {
         linearSlide2.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         linearSlide1.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         linearSlide2.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        // Set linear slide motor directions
+
+        // Set direction of linear slides
+        // ########################################################################################
+        // !!!            IMPORTANT Drive Information. Test your motor directions.            !!!!!
+        // ########################################################################################
         linearSlide1.setDirection(DcMotorSimple.Direction.FORWARD);
         linearSlide2.setDirection(DcMotorSimple.Direction.REVERSE);
 
@@ -83,29 +88,38 @@ public class drive extends LinearOpMode {
                 )
         );
 
-        // Initialize localizer
+        imu = hardwareMap.get(IMU.class, "imu");
+
+        // Init localizer
         MecanumDrive drive = new MecanumDrive(hardwareMap, PoseStorage.currentPose);
 
         // Initialize mechanical position constants
-        final double CLAW_START = 0.75;
+        final double CLAW_START = 0.9;
         final double CLAW_OPEN = 0.75;
         final double CLAW_CLOSE = 0.45;
         final double EXTENSION_START = 0;
         final double EXTENSION_OUT = 1.0;
         final double EXTENSION_IN = 0;
-        final double TWIST_START = 0.75;
-        final double TWIST_HIGH = 0.0;
-        final double TWIST_LOW = 0.5;
+        final double TWIST_START = 1.0;
+        final double TWIST_HIGH = 0.2;
+        final double TWIST_LOW = 0.6;
+        final int LINEAR_SLIDE_START = 50;
         final int LINEAR_SLIDE_MIN = 200;
-        final int LINEAR_SLIDE_MAX = 2500;
+        final int LINEAR_SLIDE_MAX = 3400;
         // Initialize mechanical position variables
-        int linearSlide1Target = 0;
-        int linearSlide2Target = 0;
+        int linearSlide1Target = LINEAR_SLIDE_START;
+        int linearSlide2Target = LINEAR_SLIDE_START;
         // Initialize robot position variables
-        double robotAngle;
+        double robotAngle = 0;
         YawPitchRollAngles robotOrientation;
 
         // Set servos to start positions
+        linearSlide1.setTargetPosition(linearSlide1Target);
+        linearSlide2.setTargetPosition(linearSlide2Target);
+        linearSlide1.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        linearSlide2.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        linearSlide1.setPower(0.5);
+        linearSlide2.setPower(0.5);
         claw.setPosition(CLAW_START);
         extension.setPosition(EXTENSION_START);
         twist.setPosition(TWIST_START);
@@ -134,11 +148,11 @@ public class drive extends LinearOpMode {
             double Pitch = robotOrientation.getPitch(AngleUnit.DEGREES);
             double Roll = robotOrientation.getRoll(AngleUnit.DEGREES);
 
-            robotAngle = myPose.heading.real; // CHANGE TO RIGHT ONE!!!
+            if (myPose != null) robotAngle = myPose.heading.real; // TODO: Change to right one
 
             // POV Mode uses left joystick to go forward & strafe, and right joystick to rotate.
-            double axial_target = -gamepad1.left_stick_y;  // Note: pushing stick forward gives negative value
-            double lateral_target = gamepad1.left_stick_x;
+            double axial_target = gamepad1.left_stick_x;  // Note: pushing stick forward gives negative value
+            double lateral_target = -gamepad1.left_stick_y;
             double axial_real = lateral_target * Math.cos(robotAngle) + axial_target * Math.sin(robotAngle);
             double lateral_real = lateral_target * -Math.sin(robotAngle) + axial_target * Math.cos(robotAngle);
             double yaw = gamepad1.right_stick_x;
@@ -210,6 +224,8 @@ public class drive extends LinearOpMode {
             } else if (gamepad2.dpad_left) {
                 twist.setPosition(TWIST_HIGH);
             }
+            twist.setPosition(twist.getPosition() + (gamepad2.right_stick_y / 128));
+
             // Claw Servo
             if (gamepad2.b) {
                 claw.setPosition(CLAW_OPEN);
@@ -224,14 +240,17 @@ public class drive extends LinearOpMode {
             rightBackDrive.setPower(rightBackPower);
 
             // Show the elapsed game time and wheel power.
-            telemetry.addData("Status", "Run Time: " + runtime);
-            telemetry.addData("Position", "x: " + myPose.position.x + "y: " + myPose.position.y);
-            telemetry.addData("Heading", "Angle: " + myPose.heading.real);
-            telemetry.addData("Extension: ", extension.getPosition());
-            telemetry.addData("Claw: ", claw.getPosition());
-            telemetry.addData("Twist: ", twist.getPosition());
-            telemetry.addData("Linear Slides Real", "LS1 Position: " + linearSlide1.getCurrentPosition() + "LS2 Position: " + linearSlide2.getCurrentPosition());
-            telemetry.addData("Linear Slides Target", "LS1 Target: " + linearSlide1Target + "LS2 Target: " + linearSlide2Target);
+            telemetry.addData("Status", "Run Time: " + runtime.toString());
+            if (myPose != null) {
+                telemetry.addData("Position", "x: " + myPose.position.x + "y: " + myPose.position.y);
+                telemetry.addData("Heading", "Angle: " + myPose.heading.real);
+            }
+            telemetry.addData("Vert slides", "Position: " + linearSlide1.getCurrentPosition());
+            telemetry.addData("Extension", "Position: " + extension.getPosition());
+            telemetry.addData("Claw", "Position: " + claw.getPosition());
+            telemetry.addData("Twist", "Position: " + twist.getPosition());
+            telemetry.addData("Linear Slides", "LS1 Position: " + linearSlide1.getCurrentPosition() + "LS2 Position: " + linearSlide2.getCurrentPosition());
+            telemetry.addData("Linear Slides", "LS1 Target: " + linearSlide1Target + "LS2 Target: " + linearSlide2Target);
             telemetry.addData("Front left/Right", "%4.2f, %4.2f", leftFrontPower, rightFrontPower);
             telemetry.addData("Back  left/Right", "%4.2f, %4.2f", leftBackPower, rightBackPower);
             telemetry.update();

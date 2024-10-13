@@ -71,7 +71,7 @@ public class drive extends LinearOpMode {
         // !!!            IMPORTANT Drive Information. Test your motor directions.            !!!!!
         // ########################################################################################
         linearSlide1.setDirection(DcMotorSimple.Direction.FORWARD);
-        linearSlide2.setDirection(DcMotorSimple.Direction.FORWARD);
+        linearSlide2.setDirection(DcMotorSimple.Direction.REVERSE);
 
         // Initialize servos
         Servo claw = hardwareMap.get(Servo.class, "claw");
@@ -101,14 +101,14 @@ public class drive extends LinearOpMode {
         final double EXTENSION_IN = 0;
         final double TWIST_START = 0.75;
         final double TWIST_HIGH = 0.0;
-        final double TWIST_LOW = 0.5;
+        final double TWIST_LOW = 0.75;
         final int LINEAR_SLIDE_MIN = 200;
-        final int LINEAR_SLIDE_MAX = 2500;
+        final int LINEAR_SLIDE_MAX = 3500;
         // Initialize mechanical position variables
         int linearSlide1Target = 0;
         int linearSlide2Target = 0;
         // Initialize robot position variables
-        double robotAngle;
+        double robotAngle = 0;
         YawPitchRollAngles robotOrientation;
 
         // Set servos to start positions
@@ -140,16 +140,11 @@ public class drive extends LinearOpMode {
             double Pitch = robotOrientation.getPitch(AngleUnit.DEGREES);
             double Roll = robotOrientation.getRoll(AngleUnit.DEGREES);
 
-            if (myPose != null){
-                robotAngle = myPose.heading.real; // TODO: Change to right one
-            }
-
-
-            double max;
+            if (myPose != null) robotAngle = myPose.heading.real; // TODO: Change to right one
 
             // POV Mode uses left joystick to go forward & strafe, and right joystick to rotate.
-            double axial_target = -gamepad1.left_stick_y;  // Note: pushing stick forward gives negative value
-            double lateral_target = gamepad1.left_stick_x;
+            double axial_target = gamepad1.left_stick_x;  // Note: pushing stick forward gives negative value
+            double lateral_target = -gamepad1.left_stick_y;
             double axial_real = lateral_target * Math.cos(robotAngle) + axial_target * Math.sin(robotAngle);
             double lateral_real = lateral_target * -Math.sin(robotAngle) + axial_target * Math.cos(robotAngle);
             double yaw = gamepad1.right_stick_x;
@@ -237,7 +232,7 @@ public class drive extends LinearOpMode {
 
             // Show the elapsed game time and wheel power.
             telemetry.addData("Status", "Run Time: " + runtime.toString());
-            if (myPose != null){
+            if (myPose != null) {
                 telemetry.addData("Position", "x: " + myPose.position.x + "y: " + myPose.position.y);
                 telemetry.addData("Heading", "Angle: " + myPose.heading.real);
             }
@@ -246,6 +241,7 @@ public class drive extends LinearOpMode {
             telemetry.addData("Claw", "Position: " + claw.getPosition());
             telemetry.addData("Twist", "Position: " + twist.getPosition());
             telemetry.addData("Linear Slides", "LS1 Position: " + linearSlide1.getCurrentPosition() + "LS2 Position: " + linearSlide2.getCurrentPosition());
+            telemetry.addData("Linear Slides", "LS1 Target: " + linearSlide1Target + "LS2 Target: " + linearSlide2Target);
             telemetry.addData("Front left/Right", "%4.2f, %4.2f", leftFrontPower, rightFrontPower);
             telemetry.addData("Back  left/Right", "%4.2f, %4.2f", leftBackPower, rightBackPower);
             telemetry.update();

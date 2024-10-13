@@ -162,7 +162,11 @@ public class Autonomous extends LinearOpMode {
         Claw claw = new Claw(hardwareMap);
         Lift lift = new Lift(hardwareMap);
 
-        TrajectoryActionBuilder tab1 = drive.actionBuilder(initialPose);
+        // Replace contents with whatever path you decide on in MeepMeep
+        TrajectoryActionBuilder tab1 = drive.actionBuilder(initialPose)
+                .setTangent(Math.toRadians(45))
+                .lineToX(5)
+                .turn(Math.toRadians(90));
 
         // actions that need to happen on init; for instance, a claw tightening.
         Actions.runBlocking(claw.closeClaw());

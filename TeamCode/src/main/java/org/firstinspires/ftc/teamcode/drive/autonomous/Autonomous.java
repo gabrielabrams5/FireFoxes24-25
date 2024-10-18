@@ -6,6 +6,7 @@ import com.acmerobotics.roadrunner.Action;
 import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.SequentialAction;
 import com.acmerobotics.roadrunner.TrajectoryActionBuilder;
+import com.acmerobotics.roadrunner.Vector2d;
 import com.acmerobotics.roadrunner.ftc.Actions;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -20,7 +21,30 @@ import org.firstinspires.ftc.teamcode.MecanumDrive;
 @Config
 @com.qualcomm.robotcore.eventloop.opmode.Autonomous(name = "TEST_AUTONOMOUS", group = "Autonomous")
 public class Autonomous extends LinearOpMode {
+    public static class Positions {
+        public final Vector2d BUCKET_BLUE = new Vector2d(56, 56);
+        public final Vector2d BUCKET_RED = new Vector2d(-56, -56);
+
+        public final Vector2d SAMPLE_NEUTRAL_BLUE_FAR = new Vector2d(40, 26);
+        public final Vector2d SAMPLE_NEUTRAL_BLUE_MIDDLE = new Vector2d(50, 26);
+        public final Vector2d SAMPLE_NEUTRAL_BLUE_CLOSE = new Vector2d(60, 26);
+
+        public final Vector2d SAMPLE_RED_FAR = new Vector2d(40, -26);
+        public final Vector2d SAMPLE_RED_MIDDLE = new Vector2d(50, -26);
+        public final Vector2d SAMPLE_RED_CLOSE = new Vector2d(60, -26);
+
+        public final Vector2d SAMPLE_BLUE_FAR = new Vector2d(-40, 26);
+        public final Vector2d SAMPLE_BLUE_MIDDLE = new Vector2d(-50, 26);
+        public final Vector2d SAMPLE_BLUE_CLOSE = new Vector2d(-60, 26);
+
+        public final Vector2d SAMPLE_NEUTRAL_RED_FAR = new Vector2d(-40, -26);
+        public final Vector2d SAMPLE_NEUTRAL_RED_MIDDLE = new Vector2d(-50, -26);
+        public final Vector2d SAMPLE_NEUTRAL_RED_CLOSE = new Vector2d(-60, -26);
+    }
+
     MecanumDrive.Params parameters = new MecanumDrive.Params();
+
+
 
     public class Lift {
         private final DcMotorEx linearSlide1;

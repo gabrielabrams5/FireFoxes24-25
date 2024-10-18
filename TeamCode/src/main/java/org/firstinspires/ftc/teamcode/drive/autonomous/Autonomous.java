@@ -20,6 +20,8 @@ import org.firstinspires.ftc.teamcode.MecanumDrive;
 @Config
 @com.qualcomm.robotcore.eventloop.opmode.Autonomous(name = "TEST_AUTONOMOUS", group = "Autonomous")
 public class Autonomous extends LinearOpMode {
+    MecanumDrive.Params parameters = new MecanumDrive.Params();
+
     public class Lift {
         private final DcMotorEx linearSlide1;
         private final DcMotorEx linearSlide2;
@@ -30,7 +32,7 @@ public class Autonomous extends LinearOpMode {
             linearSlide1.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
             linearSlide2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
             linearSlide1.setDirection(DcMotorSimple.Direction.FORWARD);
-            linearSlide2.setDirection(DcMotorSimple.Direction.FORWARD);
+            linearSlide2.setDirection(DcMotorSimple.Direction.REVERSE);
         }
 
         public class LiftUp implements Action {
@@ -45,9 +47,8 @@ public class Autonomous extends LinearOpMode {
                 }
 
                 double pos = linearSlide1.getCurrentPosition();  // Assumes both slides at same pos
-                packet.put("liftPos", pos);
-                if (pos < 3500.0) {  // 3500.0 is the LINEAR_SLIDE_MAX in drive.java, adjust here if adjusted elsewhere
-                    // Keep raising lift if it hasn't reached max height yet
+                packet.put("Linear Slide Positions", pos);
+                if (pos < parameters.LINEAR_SLIDE_MAX) {    // Keep raising lift if it hasn't reached max height yet
                     return true;
                 } else {
                     // If lift is at desired position, stop raising
@@ -75,8 +76,7 @@ public class Autonomous extends LinearOpMode {
 
                 double pos = linearSlide1.getCurrentPosition();
                 packet.put("liftPos", pos);
-                if (pos > 200.0) {  // 200.0 is the LINEAR_SLIDE_MIN in drive.java, adjust here if adjusted elsewhere
-                    // Keep lowering lift if it hasn't reached max height yet
+                if (pos > parameters.LINEAR_SLIDE_MIN) {    // Keep lowering lift if it hasn't reached max height yet
                     return true;
                 } else {
                     // If lift is at desired position, stop raising
@@ -98,28 +98,28 @@ public class Autonomous extends LinearOpMode {
             claw = hardwareMap.get(Servo.class, "claw");
         }
 
-        public class CloseClaw implements Action {
+        public class ClawClose implements Action {
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
-                claw.setPosition(0.45);  // Hardcoded from drive.java
+                claw.setPosition(parameters.CLAW_CLOSE);
                 return false;
             }
         }
 
         public Action closeClaw() {
-            return new CloseClaw();
+            return new ClawClose();
         }
 
-        public class OpenClaw implements Action {
+        public class ClawOpen implements Action {
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
-                claw.setPosition(.75);  // Also hardcoded
+                claw.setPosition(parameters.CLAW_OPEN);
                 return false;
             }
         }
 
         public Action openClaw() {
-            return new OpenClaw();
+            return new ClawOpen();
         }
     }
 
@@ -133,7 +133,7 @@ public class Autonomous extends LinearOpMode {
         public class TwistUp implements Action {
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
-                twist.setPosition(0.0);
+                twist.setPosition(parameters.TWIST_HIGH);
                 return false;
             }
         }
@@ -145,7 +145,7 @@ public class Autonomous extends LinearOpMode {
         public class TwistDown implements Action {
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
-                twist.setPosition(0.75);
+                twist.setPosition(parameters.TWIST_LOW);
                 return false;
             }
         }

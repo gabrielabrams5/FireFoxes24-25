@@ -94,35 +94,25 @@ public class drive extends LinearOpMode {
         MecanumDrive drive = new MecanumDrive(hardwareMap, PoseStorage.currentPose);
 
         // Initialize mechanical position constants
-        final double CLAW_START = 0.9;
-        final double CLAW_OPEN = 0.75;
-        final double CLAW_CLOSE = 0.45;
-        final double EXTENSION_START = 0;
-        final double EXTENSION_OUT = 1.0;
-        final double EXTENSION_IN = 0;
-        final double TWIST_START = 1.0;
-        final double TWIST_HIGH = 0.2;
-        final double TWIST_LOW = 0.6;
-        final int LINEAR_SLIDE_START = 50;
-        final int LINEAR_SLIDE_MIN = 200;
-        final int LINEAR_SLIDE_MAX = 3400;
+        MecanumDrive.Params parameters = new MecanumDrive.Params();
         // Initialize mechanical position variables
-        int linearSlide1Target = LINEAR_SLIDE_START;
-        int linearSlide2Target = LINEAR_SLIDE_START;
+        int linearSlide1Target = parameters.LINEAR_SLIDE_START;
+        int linearSlide2Target = parameters.LINEAR_SLIDE_START;
         // Initialize robot position variables
         double robotAngle = 0;
         YawPitchRollAngles robotOrientation;
 
-        // Set servos to start positions
+        // Set linear slides to start positions
         linearSlide1.setTargetPosition(linearSlide1Target);
         linearSlide2.setTargetPosition(linearSlide2Target);
         linearSlide1.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         linearSlide2.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         linearSlide1.setPower(0.5);
         linearSlide2.setPower(0.5);
-        claw.setPosition(CLAW_START);
-        extension.setPosition(EXTENSION_START);
-        twist.setPosition(TWIST_START);
+        // Set servos to start positions
+        claw.setPosition(parameters.CLAW_START);
+        extension.setPosition(parameters.EXTENSION_START);
+        twist.setPosition(parameters.TWIST_START);
 
         // Robot is ready to start! Display message to screen
         telemetry.addData("Status", "Initialized");
@@ -190,11 +180,11 @@ public class drive extends LinearOpMode {
 
             // Linear Slides
             if (gamepad2.dpad_up) {
-                linearSlide1Target = LINEAR_SLIDE_MAX;
-                linearSlide2Target = LINEAR_SLIDE_MAX;
+                linearSlide1Target = parameters.LINEAR_SLIDE_MAX;
+                linearSlide2Target = parameters.LINEAR_SLIDE_MAX;
             } else if (gamepad2.dpad_down) {
-                linearSlide1Target = LINEAR_SLIDE_MIN;
-                linearSlide2Target = LINEAR_SLIDE_MIN;
+                linearSlide1Target = parameters.LINEAR_SLIDE_MIN;
+                linearSlide2Target = parameters.LINEAR_SLIDE_MIN;
             }
 
             // Linear Slide Adjustments
@@ -212,25 +202,25 @@ public class drive extends LinearOpMode {
 
             // Extension Servo
             if (gamepad2.right_bumper) {
-                extension.setPosition(EXTENSION_OUT);
+                extension.setPosition(parameters.EXTENSION_OUT);
             } else if (gamepad2.left_bumper) {
-                extension.setPosition(EXTENSION_IN);
+                extension.setPosition(parameters.EXTENSION_IN);
             }
             extension.setPosition(extension.getPosition() + (gamepad2.right_stick_x / 128));
 
             // Twist Servo
             if (gamepad2.dpad_right) {
-                twist.setPosition(TWIST_LOW);
+                twist.setPosition(parameters.TWIST_LOW);
             } else if (gamepad2.dpad_left) {
-                twist.setPosition(TWIST_HIGH);
+                twist.setPosition(parameters.TWIST_HIGH);
             }
             twist.setPosition(twist.getPosition() + (gamepad2.right_stick_y / 128));
 
             // Claw Servo
             if (gamepad2.b) {
-                claw.setPosition(CLAW_OPEN);
+                claw.setPosition(parameters.CLAW_OPEN);
             } else if (gamepad2.x) {
-                claw.setPosition(CLAW_CLOSE);
+                claw.setPosition(parameters.CLAW_CLOSE);
             }
 
             // Send calculated power to wheels, convert power to rpm
@@ -240,7 +230,7 @@ public class drive extends LinearOpMode {
             rightBackDrive.setPower(rightBackPower);
 
             // Show the elapsed game time and wheel power.
-            telemetry.addData("Status", "Run Time: " + runtime.toString());
+            telemetry.addData("Status", "Run Time: " + runtime);
             if (myPose != null) {
                 telemetry.addData("Position", "x: " + myPose.position.x + "y: " + myPose.position.y);
                 telemetry.addData("Heading", "Angle: " + myPose.heading.real);

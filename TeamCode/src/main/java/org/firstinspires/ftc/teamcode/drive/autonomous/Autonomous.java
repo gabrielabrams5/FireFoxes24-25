@@ -20,6 +20,8 @@ import org.firstinspires.ftc.teamcode.MecanumDrive;
 @Config
 @com.qualcomm.robotcore.eventloop.opmode.Autonomous(name = "TEST_AUTONOMOUS", group = "Autonomous")
 public class Autonomous extends LinearOpMode {
+    MecanumDrive.Params parameters = new MecanumDrive.Params();
+
     public class Lift {
         private final DcMotorEx linearSlide1;
         private final DcMotorEx linearSlide2;
@@ -30,7 +32,7 @@ public class Autonomous extends LinearOpMode {
             linearSlide1.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
             linearSlide2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
             linearSlide1.setDirection(DcMotorSimple.Direction.FORWARD);
-            linearSlide2.setDirection(DcMotorSimple.Direction.FORWARD);
+            linearSlide2.setDirection(DcMotorSimple.Direction.REVERSE);
         }
 
         public class LiftUp implements Action {
@@ -45,9 +47,8 @@ public class Autonomous extends LinearOpMode {
                 }
 
                 double pos = linearSlide1.getCurrentPosition();  // Assumes both slides at same pos
-                packet.put("liftPos", pos);
-                if (pos < 3500.0) {  // 3500.0 is the LINEAR_SLIDE_MAX in drive.java, adjust here if adjusted elsewhere
-                    // Keep raising lift if it hasn't reached max height yet
+                packet.put("Linear Slide Positions", pos);
+                if (pos < parameters.LINEAR_SLIDE_MAX) {    // Keep raising lift if it hasn't reached max height yet
                     return true;
                 } else {
                     // If lift is at desired position, stop raising
@@ -75,8 +76,7 @@ public class Autonomous extends LinearOpMode {
 
                 double pos = linearSlide1.getCurrentPosition();
                 packet.put("liftPos", pos);
-                if (pos > 200.0) {  // 200.0 is the LINEAR_SLIDE_MIN in drive.java, adjust here if adjusted elsewhere
-                    // Keep lowering lift if it hasn't reached max height yet
+                if (pos > parameters.LINEAR_SLIDE_MIN) {    // Keep lowering lift if it hasn't reached max height yet
                     return true;
                 } else {
                     // If lift is at desired position, stop raising
@@ -98,28 +98,28 @@ public class Autonomous extends LinearOpMode {
             claw = hardwareMap.get(Servo.class, "claw");
         }
 
-        public class CloseClaw implements Action {
+        public class ClawClose implements Action {
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
-                claw.setPosition(0.45);  // Hardcoded from drive.java
+                claw.setPosition(parameters.CLAW_CLOSE);
                 return false;
             }
         }
 
         public Action closeClaw() {
-            return new CloseClaw();
+            return new ClawClose();
         }
 
-        public class OpenClaw implements Action {
+        public class ClawOpen implements Action {
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
-                claw.setPosition(.75);  // Also hardcoded
+                claw.setPosition(parameters.CLAW_OPEN);
                 return false;
             }
         }
 
         public Action openClaw() {
-            return new OpenClaw();
+            return new ClawOpen();
         }
     }
 
@@ -133,7 +133,7 @@ public class Autonomous extends LinearOpMode {
         public class TwistUp implements Action {
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
-                twist.setPosition(0.0);
+                twist.setPosition(parameters.TWIST_HIGH);
                 return false;
             }
         }
@@ -145,7 +145,7 @@ public class Autonomous extends LinearOpMode {
         public class TwistDown implements Action {
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
-                twist.setPosition(0.75);
+                twist.setPosition(parameters.TWIST_LOW);
                 return false;
             }
         }
@@ -161,12 +161,40 @@ public class Autonomous extends LinearOpMode {
         MecanumDrive drive = new MecanumDrive(hardwareMap, initialPose);
         Claw claw = new Claw(hardwareMap);
         Lift lift = new Lift(hardwareMap);
+        Twist twist = new Twist(hardwareMap);
+        Pose2d bucketPose = new Pose2d(55, 54, Math.toRadians(45));
+        double secondsToWait = 1;
+        double initialBlockX = 35.0;
+        Pose2d block1Pose = new Pose2d(initialBlockX+10*0, 26, Math.toRadians(0));
+        Pose2d block2Pose = new Pose2d(initialBlockX+10*1, 26, Math.toRadians(0));
+        Pose2d block3Pose = new Pose2d(initialBlockX+10*2, 26, Math.toRadians(0));
 
-        TrajectoryActionBuilder tab1 = drive.actionBuilder(initialPose);
-
+        // Replace contents with whatever path you decide on in MeepMeep
+        TrajectoryActionBuilder initialGoToBucket = drive.actionBuilder(initialPose)
+                .setTangent(Math.toRadians(0))
+                .splineToLinearHeading(bucketPose, Math.toRadians(315));
+        TrajectoryActionBuilder goToBlock1 = drive.actionBuilder(bucketPose)
+                .setTangent(Math.toRadians(180))
+                .splineToLinearHeading(block1Pose, 0);
+        TrajectoryActionBuilder goBackFromBlock1 = drive.actionBuilder(block1Pose)
+                .splineToLinearHeading(bucketPose, 45);
+        TrajectoryActionBuilder goToBlock2 = drive.actionBuilder(bucketPose)
+                .setTangent(Math.toRadians(180))
+                .splineToLinearHeading(block2Pose, 0);
+        TrajectoryActionBuilder goBackFromBlock2 = drive.actionBuilder(block2Pose)
+                .splineToLinearHeading(bucketPose, 45);
+        TrajectoryActionBuilder goToBlock3 = drive.actionBuilder(bucketPose)
+                .setTangent(Math.toRadians(180))
+                .splineToLinearHeading(block3Pose, 0);
+        TrajectoryActionBuilder goBackFromBlock3 = drive.actionBuilder(block3Pose)
+                .splineToLinearHeading(bucketPose, 45);
+        TrajectoryActionBuilder goToSubmersible = drive.actionBuilder(bucketPose)
+                .setTangent(Math.toRadians(180))
+                .splineToLinearHeading(new Pose2d(26, 10, Math.toRadians(180)), Math.toRadians(270));
         // actions that need to happen on init; for instance, a claw tightening.
+        Actions.runBlocking(lift.liftUp());
+        Actions.runBlocking(twist.twistUp());
         Actions.runBlocking(claw.closeClaw());
-
 
         while (!isStopRequested() && !opModeIsActive()) {
             telemetry.addData("X Position during Init", drive.pose.position.x);
@@ -176,29 +204,47 @@ public class Autonomous extends LinearOpMode {
             telemetry.update();
         }
 
-        int startPosition = visionOutputPosition;
-        telemetry.addData("Starting Position", startPosition);
+        // If we're using all of these, might as well build them all, right?
+        Action initialGoToBucketBuilt = initialGoToBucket.build();
+        Action goToBlock1Built = goToBlock1.build();
+        Action goBackFromBlock1Built = goBackFromBlock1.build();
+        Action goToBlock2Built = goToBlock2.build();
+        Action goBackFromBlock2Built = goBackFromBlock2.build();
+        Action goToBlock3Built = goToBlock3.build();
+        Action goBackFromBlock3Built = goBackFromBlock3.build();
+
         telemetry.update();
         waitForStart();
 
         if (isStopRequested()) return;
 
-        Action trajectoryActionChosen;
-        if (startPosition == 1) {
-            trajectoryActionChosen = tab1.build();
-        } else if (startPosition == 2) {
-            trajectoryActionChosen = tab2.build();
-        } else {
-            trajectoryActionChosen = tab3.build();
-        }
-
         Actions.runBlocking(
                 new SequentialAction(
-                        trajectoryActionChosen,
-                        lift.liftUp(),
-                        claw.openClaw(),
-                        lift.liftDown(),
-                        trajectoryActionCloseOut
+                    initialGoToBucketBuilt,
+                    claw.openClaw(),
+                    twist.twistDown(),
+                    lift.liftDown(),
+                    goToBlock1Built,
+                    claw.closeClaw(),
+                    lift.liftUp(),
+                    twist.twistUp(),
+                    goBackFromBlock1Built,
+                    claw.openClaw(),
+                    twist.twistDown(),
+                    lift.liftDown(),
+                    goToBlock2Built,
+                    claw.closeClaw(),
+                    lift.liftUp(),
+                    twist.twistUp(),
+                    goBackFromBlock2Built,
+                    claw.openClaw(),
+                    twist.twistDown(),
+                    lift.liftDown(),
+                    goToBlock3Built,
+                    claw.closeClaw(),
+                    lift.liftUp(),
+                    twist.twistUp(),
+                    goBackFromBlock3Built
                 )
         );
     }

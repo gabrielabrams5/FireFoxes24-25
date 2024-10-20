@@ -161,16 +161,40 @@ public class Autonomous extends LinearOpMode {
         MecanumDrive drive = new MecanumDrive(hardwareMap, initialPose);
         Claw claw = new Claw(hardwareMap);
         Lift lift = new Lift(hardwareMap);
+        Twist twist = new Twist(hardwareMap);
+        Pose2d bucketPose = new Pose2d(55, 54, Math.toRadians(45));
+        double secondsToWait = 1;
+        double initialBlockX = 35.0;
+        Pose2d block1Pose = new Pose2d(initialBlockX+10*0, 26, Math.toRadians(0));
+        Pose2d block2Pose = new Pose2d(initialBlockX+10*1, 26, Math.toRadians(0));
+        Pose2d block3Pose = new Pose2d(initialBlockX+10*2, 26, Math.toRadians(0));
 
         // Replace contents with whatever path you decide on in MeepMeep
-        TrajectoryActionBuilder tab1 = drive.actionBuilder(initialPose)
-                .setTangent(Math.toRadians(45))
-                .lineToX(5)
-                .turn(Math.toRadians(90));
-
+        TrajectoryActionBuilder initialGoToBucket = drive.actionBuilder(initialPose)
+                .setTangent(Math.toRadians(0))
+                .splineToLinearHeading(bucketPose, Math.toRadians(315));
+        TrajectoryActionBuilder goToBlock1 = drive.actionBuilder(bucketPose)
+                .setTangent(Math.toRadians(180))
+                .splineToLinearHeading(block1Pose, 0);
+        TrajectoryActionBuilder goBackFromBlock1 = drive.actionBuilder(block1Pose)
+                .splineToLinearHeading(bucketPose, 45);
+        TrajectoryActionBuilder goToBlock2 = drive.actionBuilder(bucketPose)
+                .setTangent(Math.toRadians(180))
+                .splineToLinearHeading(block2Pose, 0);
+        TrajectoryActionBuilder goBackFromBlock2 = drive.actionBuilder(block2Pose)
+                .splineToLinearHeading(bucketPose, 45);
+        TrajectoryActionBuilder goToBlock3 = drive.actionBuilder(bucketPose)
+                .setTangent(Math.toRadians(180))
+                .splineToLinearHeading(block3Pose, 0);
+        TrajectoryActionBuilder goBackFromBlock3 = drive.actionBuilder(block3Pose)
+                .splineToLinearHeading(bucketPose, 45);
+        TrajectoryActionBuilder goToSubmersible = drive.actionBuilder(bucketPose)
+                .setTangent(Math.toRadians(180))
+                .splineToLinearHeading(new Pose2d(26, 10, Math.toRadians(180)), Math.toRadians(270));
         // actions that need to happen on init; for instance, a claw tightening.
+        Actions.runBlocking(lift.liftUp());
+        Actions.runBlocking(twist.twistUp());
         Actions.runBlocking(claw.closeClaw());
-
 
         while (!isStopRequested() && !opModeIsActive()) {
             telemetry.addData("X Position during Init", drive.pose.position.x);
@@ -180,20 +204,47 @@ public class Autonomous extends LinearOpMode {
             telemetry.update();
         }
 
+        // If we're using all of these, might as well build them all, right?
+        Action initialGoToBucketBuilt = initialGoToBucket.build();
+        Action goToBlock1Built = goToBlock1.build();
+        Action goBackFromBlock1Built = goBackFromBlock1.build();
+        Action goToBlock2Built = goToBlock2.build();
+        Action goBackFromBlock2Built = goBackFromBlock2.build();
+        Action goToBlock3Built = goToBlock3.build();
+        Action goBackFromBlock3Built = goBackFromBlock3.build();
+
         telemetry.update();
         waitForStart();
 
         if (isStopRequested()) return;
 
-        Action trajectoryActionChosen = tab1.build();
-
         Actions.runBlocking(
                 new SequentialAction(
-                        trajectoryActionChosen,
-                        lift.liftUp(),
-                        claw.openClaw(),
-                        lift.liftDown()//,
-                        //trajectoryActionCloseOut
+                    initialGoToBucketBuilt,
+                    claw.openClaw(),
+                    twist.twistDown(),
+                    lift.liftDown(),
+                    goToBlock1Built,
+                    claw.closeClaw(),
+                    lift.liftUp(),
+                    twist.twistUp(),
+                    goBackFromBlock1Built,
+                    claw.openClaw(),
+                    twist.twistDown(),
+                    lift.liftDown(),
+                    goToBlock2Built,
+                    claw.closeClaw(),
+                    lift.liftUp(),
+                    twist.twistUp(),
+                    goBackFromBlock2Built,
+                    claw.openClaw(),
+                    twist.twistDown(),
+                    lift.liftDown(),
+                    goToBlock3Built,
+                    claw.closeClaw(),
+                    lift.liftUp(),
+                    twist.twistUp(),
+                    goBackFromBlock3Built
                 )
         );
     }

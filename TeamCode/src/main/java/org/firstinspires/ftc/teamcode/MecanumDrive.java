@@ -41,6 +41,7 @@ import com.qualcomm.robotcore.hardware.VoltageSensor;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
+import org.firstinspires.ftc.teamcode.drive.DriveConstants;
 import org.firstinspires.ftc.teamcode.messages.DriveCommandMessage;
 import org.firstinspires.ftc.teamcode.messages.MecanumCommandMessage;
 import org.firstinspires.ftc.teamcode.messages.MecanumLocalizerInputsMessage;
@@ -63,14 +64,14 @@ public final class MecanumDrive {
                 RevHubOrientationOnRobot.UsbFacingDirection.UP;
 
         // drive model parameters
-        public double inPerTick = 0.0058984877;
-        public double lateralInPerTick = 0.0000004578992525198638;
-        public double trackWidthTicks = 5064.851095935415;
+        public double inPerTick = 0.002956509615;
+        public double lateralInPerTick = 0.00229021378319891;
+        public double trackWidthTicks = 4998.824958744461;
 
         // feedforward parameters (in tick units)
-        public double kS = 1.1318005973742036;
-        public double kV = 0.0005663886055960768;
-        public double kA = 0.0001;
+        public double kS = 0.9844335835262235;
+        public double kV = 0.0005889963515484058;
+        public double kA = 0.00008;
 
         // path profile parameters (in inches)
         public double maxWheelVel = 50;
@@ -82,26 +83,13 @@ public final class MecanumDrive {
         public double maxAngAccel = Math.PI;
 
         // path controller gains
-        public double axialGain = 0.0;
-        public double lateralGain = 0.0;
-        public double headingGain = 0.0; // shared with turn
+        public double axialGain = 8.0;
+        public double lateralGain = 1.0;
+        public double headingGain = 3.0; // shared with turn
 
-        public double axialVelGain = 0.0;
+        public double axialVelGain = 2.0;
         public double lateralVelGain = 0.0;
-        public double headingVelGain = 0.0; // shared with turn
-
-        public final double CLAW_START = 0.9;
-        public final double CLAW_OPEN = 0.75;
-        public final double CLAW_CLOSE = 0.45;
-        public final double EXTENSION_START = 0;
-        public final double EXTENSION_OUT = 1.0;
-        public final double EXTENSION_IN = 0;
-        public final double TWIST_START = 1.0;
-        public final double TWIST_HIGH = 0.2;
-        public final double TWIST_LOW = 0.6;
-        public final int LINEAR_SLIDE_START = 50;
-        public final int LINEAR_SLIDE_MIN = 200;
-        public final int LINEAR_SLIDE_MAX = 3350;
+        public double headingVelGain = 1.0; // shared with turn
     }
 
     public static Params PARAMS = new Params();
@@ -163,6 +151,7 @@ public final class MecanumDrive {
             PositionVelocityPair rightFrontPosVel = rightFront.getPositionAndVelocity();
 
             YawPitchRollAngles angles = imu.getRobotYawPitchRollAngles();
+
 
             FlightRecorder.write("MECANUM_LOCALIZER_INPUTS", new MecanumLocalizerInputsMessage(
                     leftFrontPosVel, leftBackPosVel, rightBackPosVel, rightFrontPosVel, angles));

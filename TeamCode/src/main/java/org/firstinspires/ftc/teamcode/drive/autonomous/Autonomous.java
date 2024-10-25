@@ -92,8 +92,8 @@ public class Autonomous extends LinearOpMode {
             return new SequentialAction(
                     new ParallelAction(
                             poseToBucket.build(),
-                            lift.liftUp(),
-                            twist.twistUp()
+                            lift.liftUp()
+//                            twist.twistUp()
                     ),
                     claw.clawOpen()
             );
@@ -104,7 +104,7 @@ public class Autonomous extends LinearOpMode {
                     new ParallelAction(
                             bucketToSample.build(),
                             extension.extensionIn(),
-                            twist.twistDown(),
+//                            twist.twistDown(),
                             lift.liftDown(),
                             claw.clawOpen()
                     ),
@@ -117,7 +117,7 @@ public class Autonomous extends LinearOpMode {
                     extension.extensionOut(),
                     claw.clawClose(),
                     new ParallelAction(
-                            twist.twistUp(),
+//                            twist.twistUp()
                             extension.extensionIn()
                     )
             );

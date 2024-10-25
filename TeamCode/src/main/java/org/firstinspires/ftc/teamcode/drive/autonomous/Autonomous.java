@@ -238,7 +238,7 @@ public class Autonomous extends LinearOpMode {
     }
 
     public class Claw {
-        Servo claw;
+        private Servo claw;
 
         public Claw(HardwareMap hardwareMap) {
             claw = hardwareMap.get(Servo.class, "claw");
@@ -282,17 +282,33 @@ public class Autonomous extends LinearOpMode {
     }
 
     public class Twist {
-        Servo twist;
+        private final DcMotorEx twist;
 
         public Twist(HardwareMap hardwareMap) {
-            twist = hardwareMap.get(Servo.class, "twist");
+            twist = hardwareMap.get(DcMotorEx.class, "twist");
+            twist.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+            twist.setDirection(DcMotorSimple.Direction.FORWARD);
         }
 
         public class TwistUp implements Action {
+            private boolean initialized = false;
+
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
-                twist.setPosition(parameters.TWIST_HIGH);
-                return false;
+                if (!initialized) {
+                    twist.setPower(0.8);
+                    initialized = true;
+                }
+
+                double pos = twist.getCurrentPosition();  // Assumes both slides at same pos
+                packet.put("Linear Slide Positions", pos);
+                if (pos < parameters.LINEAR_SLIDE_MAX) {    // Keep raising lift if it hasn't reached max height yet
+                    return true;
+                } else {
+                    // If lift is at desired position, stop raising
+                    twist.setPower(0);
+                    return false;
+                }
             }
         }
 
@@ -301,10 +317,24 @@ public class Autonomous extends LinearOpMode {
         }
 
         public class TwistDown implements Action {
+            private boolean initialized = false;
+
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
-                twist.setPosition(parameters.TWIST_LOW);
-                return false;
+                if (!initialized) {
+                    twist.setPower(-0.8);
+                    initialized = true;
+                }
+
+                double pos = twist.getCurrentPosition();
+                packet.put("liftPos", pos);
+                if (pos > parameters.LINEAR_SLIDE_MIN) {    // Keep lowering lift if it hasn't reached max height yet
+                    return true;
+                } else {
+                    // If lift is at desired position, stop raising
+                    twist.setPower(0);
+                    return false;
+                }
             }
         }
 
@@ -313,10 +343,24 @@ public class Autonomous extends LinearOpMode {
         }
 
         public class TwistInit implements Action {
+            private boolean initialized = false;
+
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
-                twist.setPosition(parameters.TWIST_START);
-                return false;
+                if (!initialized) {
+                    twist.setPower(
+                            twist.getCurrentPosition() > parameters.TWIST_START ? -0.5 : 0.5);
+                    initialized = true;
+                }
+
+                double twistPosition = twist.getCurrentPosition();
+                boolean isTwistInitialized = false;
+                packet.put("Twist Position", twistPosition);
+                if (Math.abs(twistPosition - parameters.LINEAR_SLIDE_START) < 5) {
+                    isTwistInitialized = true;
+                    twist.setPower(0);
+                }
+                return !isTwistInitialized;
             }
         }
 
@@ -324,6 +368,7 @@ public class Autonomous extends LinearOpMode {
             return new TwistInit();
         }
     }
+
 
     public class Extension {
         Servo Extension;

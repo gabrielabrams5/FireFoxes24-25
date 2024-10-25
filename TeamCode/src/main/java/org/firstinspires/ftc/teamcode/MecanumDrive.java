@@ -90,6 +90,19 @@ public final class MecanumDrive {
         public double axialVelGain = 2.0;
         public double lateralVelGain = 0.0;
         public double headingVelGain = 1.0; // shared with turn
+
+        public final double CLAW_START = 0.9;
+        public final double CLAW_OPEN = 0.75;
+        public final double CLAW_CLOSE = 0.45;
+        public final double EXTENSION_START = 0;
+        public final double EXTENSION_OUT = 1.0;
+        public final double EXTENSION_IN = 0;
+        public final double TWIST_START = 1.0;
+        public final double TWIST_HIGH = 0.2;
+        public final double TWIST_LOW = 0.6;
+        public final int LINEAR_SLIDE_START = 50;
+        public final int LINEAR_SLIDE_MIN = 200;
+        public final int LINEAR_SLIDE_MAX = 3350;
     }
 
     public static Params PARAMS = new Params();

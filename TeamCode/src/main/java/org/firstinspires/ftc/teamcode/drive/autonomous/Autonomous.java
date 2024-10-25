@@ -169,7 +169,6 @@ public class Autonomous extends LinearOpMode {
         Pose2d block2Pose = new Pose2d(initialBlockX+10*1, 26, Math.toRadians(0));
         Pose2d block3Pose = new Pose2d(initialBlockX+10*2, 26, Math.toRadians(0));
 
-        // Replace contents with whatever path you decide on in MeepMeep
         TrajectoryActionBuilder initialGoToBucket = drive.actionBuilder(initialPose)
                 .setTangent(Math.toRadians(0))
                 .splineToLinearHeading(bucketPose, Math.toRadians(315));
@@ -188,6 +187,7 @@ public class Autonomous extends LinearOpMode {
                 .splineToLinearHeading(block3Pose, 0);
         TrajectoryActionBuilder goBackFromBlock3 = drive.actionBuilder(block3Pose)
                 .splineToLinearHeading(bucketPose, 45);
+        // We probably don't have the time for submersible dumpster diving ('^')
         TrajectoryActionBuilder goToSubmersible = drive.actionBuilder(bucketPose)
                 .setTangent(Math.toRadians(180))
                 .splineToLinearHeading(new Pose2d(26, 10, Math.toRadians(180)), Math.toRadians(270));

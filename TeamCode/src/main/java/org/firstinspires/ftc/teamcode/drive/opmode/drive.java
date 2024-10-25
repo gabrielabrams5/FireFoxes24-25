@@ -68,9 +68,6 @@ public class drive extends LinearOpMode {
         linearSlide2.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
         // Set direction of linear slides
-        // ########################################################################################
-        // !!!            IMPORTANT Drive Information. Test your motor directions.            !!!!!
-        // ########################################################################################
         linearSlide1.setDirection(DcMotorSimple.Direction.FORWARD);
         linearSlide2.setDirection(DcMotorSimple.Direction.REVERSE);
 

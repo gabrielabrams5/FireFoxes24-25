@@ -403,6 +403,7 @@ public class Autonomous extends LinearOpMode {
                 .setTangent(Math.toRadians(180))
                 .splineToLinearHeading(new Pose2d(26, 10, Math.toRadians(180)), Math.toRadians(270));
 
+        // TODO: Correctly invert the rest of these trajectories
         TrajectoryActionBuilder redInitToBucket = robot.drive.actionBuilder(initialPose)
                 .setTangent(Math.toRadians(180))
                 .splineToLinearHeading(Positions.BUCKET_RED, Math.toRadians(135));

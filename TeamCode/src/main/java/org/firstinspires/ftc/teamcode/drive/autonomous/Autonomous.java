@@ -103,8 +103,10 @@ public class Autonomous extends LinearOpMode {
             return new SequentialAction(
                     new ParallelAction(
                             bucketToSample.build(),
+                            extension.extensionIn(),
                             twist.twistDown(),
-                            lift.liftDown()
+                            lift.liftDown(),
+                            claw.clawOpen()
                     ),
                     GetSample()
             );
@@ -126,8 +128,7 @@ public class Autonomous extends LinearOpMode {
                     lift.liftUp(),
                     extension.extensionOut(),
                     claw.clawOpen(),
-                    extension.extensionIn(),
-                    lift.liftDown()
+                    extension.extensionIn()
             );
         }
     }
@@ -381,24 +382,44 @@ public class Autonomous extends LinearOpMode {
         TrajectoryActionBuilder blueInitToBucket = robot.drive.actionBuilder(initialPose)
                 .setTangent(Math.toRadians(0))
                 .splineToLinearHeading(Positions.BUCKET_BLUE, Math.toRadians(315));
-        TrajectoryActionBuilder blueBucketToFarBlock = robot.drive.actionBuilder(Positions.BUCKET_BLUE)
+        TrajectoryActionBuilder blueBucketToFarNeutralBlock = robot.drive.actionBuilder(Positions.BUCKET_BLUE)
                 .setTangent(Math.toRadians(225))
                 .splineToLinearHeading(Positions.SAMPLE_NEUTRAL_BLUE_FAR, Math.toRadians(-80));
-        TrajectoryActionBuilder blueFarBlockToBucket = robot.drive.actionBuilder(Positions.SAMPLE_NEUTRAL_BLUE_FAR)
+        TrajectoryActionBuilder blueFarNeutralBlockToBucket = robot.drive.actionBuilder(Positions.SAMPLE_NEUTRAL_BLUE_FAR)
                 .setTangent(Math.toRadians(90))
                 .splineToLinearHeading(Positions.BUCKET_BLUE, Math.toRadians(45));
-        TrajectoryActionBuilder blueBucketToMiddleBlock = robot.drive.actionBuilder(Positions.BUCKET_BLUE)
+        TrajectoryActionBuilder blueBucketToMiddleNeutralBlock = robot.drive.actionBuilder(Positions.BUCKET_BLUE)
                 .setTangent(Math.toRadians(225))
                 .splineToLinearHeading(Positions.SAMPLE_NEUTRAL_BLUE_MIDDLE, Math.toRadians(-90));
-        TrajectoryActionBuilder blueMiddleBlockToBucket = robot.drive.actionBuilder(Positions.SAMPLE_NEUTRAL_BLUE_MIDDLE)
+        TrajectoryActionBuilder blueMiddleNeutralBlockToBucket = robot.drive.actionBuilder(Positions.SAMPLE_NEUTRAL_BLUE_MIDDLE)
                 .setTangent(Math.toRadians(90))
                 .splineToLinearHeading(Positions.BUCKET_BLUE, Math.toRadians(45));
-        TrajectoryActionBuilder blueBucketToCloseBlock = robot.drive.actionBuilder(Positions.BUCKET_BLUE)
+        TrajectoryActionBuilder blueBucketToCloseNeutralBlock = robot.drive.actionBuilder(Positions.BUCKET_BLUE)
                 .setTangent(Math.toRadians(225))
                 .splineToLinearHeading(Positions.SAMPLE_NEUTRAL_BLUE_CLOSE, Math.toRadians(-60));
-        TrajectoryActionBuilder blueCloseBlockToBucket = robot.drive.actionBuilder(Positions.SAMPLE_NEUTRAL_BLUE_CLOSE)
+        TrajectoryActionBuilder blueCloseNeutralBlockToBucket = robot.drive.actionBuilder(Positions.SAMPLE_NEUTRAL_BLUE_CLOSE)
                 .setTangent(Math.toRadians(120))
                 .splineToLinearHeading(Positions.BUCKET_BLUE, Math.toRadians(45));
+
+        TrajectoryActionBuilder blueBucketToFarBlueBlock = robot.drive.actionBuilder(Positions.BUCKET_BLUE)
+                .setTangent(Math.toRadians(225))
+                .splineToLinearHeading(Positions.SAMPLE_BLUE_FAR, Math.toRadians(-80));
+        TrajectoryActionBuilder blueFarBlueBlockToBucket = robot.drive.actionBuilder(Positions.SAMPLE_NEUTRAL_BLUE_FAR)
+                .setTangent(Math.toRadians(90))
+                .splineToLinearHeading(Positions.BUCKET_BLUE, Math.toRadians(45));
+        TrajectoryActionBuilder blueBucketToMiddleBlueBlock = robot.drive.actionBuilder(Positions.BUCKET_BLUE)
+                .setTangent(Math.toRadians(225))
+                .splineToLinearHeading(Positions.SAMPLE_BLUE_MIDDLE, Math.toRadians(-90));
+        TrajectoryActionBuilder blueMiddleBlueBlockToBucket = robot.drive.actionBuilder(Positions.SAMPLE_NEUTRAL_BLUE_MIDDLE)
+                .setTangent(Math.toRadians(90))
+                .splineToLinearHeading(Positions.BUCKET_BLUE, Math.toRadians(45));
+        TrajectoryActionBuilder blueBucketToCloseBlueBlock = robot.drive.actionBuilder(Positions.BUCKET_BLUE)
+                .setTangent(Math.toRadians(225))
+                .splineToLinearHeading(Positions.SAMPLE_BLUE_CLOSE, Math.toRadians(-60));
+        TrajectoryActionBuilder blueCloseBlueBlockToBucket = robot.drive.actionBuilder(Positions.SAMPLE_NEUTRAL_BLUE_CLOSE)
+                .setTangent(Math.toRadians(120))
+                .splineToLinearHeading(Positions.BUCKET_BLUE, Math.toRadians(45));
+
         TrajectoryActionBuilder blueBucketToSubmersible = robot.drive.actionBuilder(Positions.BUCKET_BLUE)
                 .setTangent(Math.toRadians(180))
                 .splineToLinearHeading(new Pose2d(26, 10, Math.toRadians(180)), Math.toRadians(270));
@@ -406,21 +427,38 @@ public class Autonomous extends LinearOpMode {
         TrajectoryActionBuilder redInitToBucket = robot.drive.actionBuilder(initialPose)
                 .setTangent(Math.toRadians(180))
                 .splineToLinearHeading(Positions.BUCKET_RED, Math.toRadians(135));
-        TrajectoryActionBuilder redBucketToFarBlock = robot.drive.actionBuilder(Positions.BUCKET_RED)
+        TrajectoryActionBuilder redBucketToFarNeutralBlock = robot.drive.actionBuilder(Positions.BUCKET_RED)
                 .setTangent(Math.toRadians(45))
                 .splineToLinearHeading(Positions.SAMPLE_NEUTRAL_RED_FAR, Math.toRadians(100));
-        TrajectoryActionBuilder redFarBlockToBucket = robot.drive.actionBuilder(Positions.SAMPLE_NEUTRAL_RED_FAR)
+        TrajectoryActionBuilder redFarNeutralBlockToBucket = robot.drive.actionBuilder(Positions.SAMPLE_NEUTRAL_RED_FAR)
                 .splineToLinearHeading(Positions.BUCKET_RED, 45);
-        TrajectoryActionBuilder redBucketToMiddleBlock = robot.drive.actionBuilder(Positions.BUCKET_RED)
+        TrajectoryActionBuilder redBucketToMiddleNeutralBlock = robot.drive.actionBuilder(Positions.BUCKET_RED)
                 .setTangent(Math.toRadians(180))
                 .splineToLinearHeading(Positions.SAMPLE_NEUTRAL_RED_MIDDLE, 0);
-        TrajectoryActionBuilder redMiddleBlockToBucket = robot.drive.actionBuilder(Positions.SAMPLE_NEUTRAL_RED_MIDDLE)
+        TrajectoryActionBuilder redMiddleNeutralBlockToBucket = robot.drive.actionBuilder(Positions.SAMPLE_NEUTRAL_RED_MIDDLE)
                 .setTangent(Math.toRadians(90))
                 .splineToLinearHeading(Positions.BUCKET_RED, 45);
-        TrajectoryActionBuilder redBucketToCloseBlock = robot.drive.actionBuilder(Positions.BUCKET_RED)
+        TrajectoryActionBuilder redBucketToCloseNeutralBlock = robot.drive.actionBuilder(Positions.BUCKET_RED)
                 .setTangent(Math.toRadians(180))
                 .splineToLinearHeading(Positions.SAMPLE_NEUTRAL_RED_CLOSE, 0);
-        TrajectoryActionBuilder redCloseBlockToBucket = robot.drive.actionBuilder(Positions.SAMPLE_NEUTRAL_RED_CLOSE)
+        TrajectoryActionBuilder redCloseNeutralBlockToBucket = robot.drive.actionBuilder(Positions.SAMPLE_NEUTRAL_RED_CLOSE)
+                .splineToLinearHeading(Positions.BUCKET_RED, 45);
+
+        TrajectoryActionBuilder redBucketToFarRedBlock = robot.drive.actionBuilder(Positions.BUCKET_RED)
+                .setTangent(Math.toRadians(45))
+                .splineToLinearHeading(Positions.SAMPLE_NEUTRAL_RED_FAR, Math.toRadians(100));
+        TrajectoryActionBuilder redFarRedBlockToBucket = robot.drive.actionBuilder(Positions.SAMPLE_NEUTRAL_RED_FAR)
+                .splineToLinearHeading(Positions.BUCKET_RED, 45);
+        TrajectoryActionBuilder redBucketToMiddleRedBlock = robot.drive.actionBuilder(Positions.BUCKET_RED)
+                .setTangent(Math.toRadians(180))
+                .splineToLinearHeading(Positions.SAMPLE_NEUTRAL_RED_MIDDLE, 0);
+        TrajectoryActionBuilder redMiddleRedBlockToBucket = robot.drive.actionBuilder(Positions.SAMPLE_NEUTRAL_RED_MIDDLE)
+                .setTangent(Math.toRadians(90))
+                .splineToLinearHeading(Positions.BUCKET_RED, 45);
+        TrajectoryActionBuilder redBucketToCloseRedBlock = robot.drive.actionBuilder(Positions.BUCKET_RED)
+                .setTangent(Math.toRadians(180))
+                .splineToLinearHeading(Positions.SAMPLE_NEUTRAL_RED_CLOSE, 0);
+        TrajectoryActionBuilder redCloseRedBlockToBucket = robot.drive.actionBuilder(Positions.SAMPLE_NEUTRAL_RED_CLOSE)
                 .splineToLinearHeading(Positions.BUCKET_RED, 45);
         TrajectoryActionBuilder redBucketToSubmersible = robot.drive.actionBuilder(Positions.BUCKET_RED)
                 .setTangent(Math.toRadians(180))
@@ -443,32 +481,46 @@ public class Autonomous extends LinearOpMode {
             case BLUE_BUCKET:
                 actionToExecute = new SequentialAction(
                         robot.poseToBucket(blueInitToBucket),
-                        robot.bucketToSample(blueBucketToFarBlock),
-                        robot.poseToBucket(blueFarBlockToBucket),
-                        robot.bucketToSample(blueBucketToMiddleBlock),
-                        robot.poseToBucket(blueMiddleBlockToBucket),
-                        robot.bucketToSample(blueBucketToCloseBlock),
-                        robot.poseToBucket(blueCloseBlockToBucket)
+                        robot.bucketToSample(blueBucketToFarBlueBlock),
+                        robot.poseToBucket(blueFarBlueBlockToBucket),
+                        robot.bucketToSample(blueBucketToMiddleBlueBlock),
+                        robot.poseToBucket(blueMiddleBlueBlockToBucket),
+                        robot.bucketToSample(blueBucketToCloseBlueBlock),
+                        robot.poseToBucket(blueCloseBlueBlockToBucket)
                 );
                 break;
             case BLUE_DIVE:
-                actionToExecute = robot.drive.actionBuilder(new Pose2d(1, 0, 0)).build();
+                actionToExecute = new SequentialAction(
+                        robot.poseToBucket(blueInitToBucket),
+                        robot.bucketToSample(blueBucketToFarNeutralBlock),
+                        robot.poseToBucket(blueFarNeutralBlockToBucket),
+                        robot.bucketToSample(blueBucketToMiddleNeutralBlock),
+                        robot.poseToBucket(blueMiddleNeutralBlockToBucket),
+                        robot.bucketToSample(blueBucketToCloseNeutralBlock),
+                        robot.poseToBucket(blueCloseNeutralBlockToBucket)
+                );
                 break;
             case RED_BUCKET:
                 actionToExecute = new SequentialAction(
                         robot.poseToBucket(redInitToBucket),
-                        robot.bucketToSample(redBucketToFarBlock),
-                        robot.poseToBucket(redFarBlockToBucket),
-                        robot.bucketToSample(redBucketToMiddleBlock),
-                        robot.poseToBucket(redMiddleBlockToBucket),
-                        robot.bucketToSample(redBucketToCloseBlock),
-                        robot.poseToBucket(redCloseBlockToBucket)
+                        robot.bucketToSample(redBucketToFarNeutralBlock),
+                        robot.poseToBucket(redFarNeutralBlockToBucket),
+                        robot.bucketToSample(redBucketToMiddleNeutralBlock),
+                        robot.poseToBucket(redMiddleNeutralBlockToBucket),
+                        robot.bucketToSample(redBucketToCloseNeutralBlock),
+                        robot.poseToBucket(redCloseNeutralBlockToBucket)
                 );
                 break;
             case RED_DIVE:
-                actionToExecute = robot.drive.actionBuilder(new Pose2d(3, 0, 0)).build();
-
-                break;
+                actionToExecute = new SequentialAction(
+                        robot.poseToBucket(redInitToBucket),
+                        robot.bucketToSample(redBucketToFarRedBlock),
+                        robot.poseToBucket(redFarRedBlockToBucket),
+                        robot.bucketToSample(redBucketToMiddleRedBlock),
+                        robot.poseToBucket(redMiddleRedBlockToBucket),
+                        robot.bucketToSample(redBucketToCloseRedBlock),
+                        robot.poseToBucket(redCloseRedBlockToBucket)
+                );
             default:
                 actionToExecute = robot.drive.actionBuilder(new Pose2d(0, 0, 0)).build();
                 break;

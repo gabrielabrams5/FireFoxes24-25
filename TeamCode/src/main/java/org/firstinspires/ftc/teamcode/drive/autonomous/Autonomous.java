@@ -379,6 +379,18 @@ public class Autonomous extends LinearOpMode {
                 new Claw(hardwareMap), new MecanumDrive(hardwareMap, initialPose));
 
         // Trajectories to select from
+
+        /*
+        Naming scheme for TrajectoryActionBuilders that go from buckets to blocks:
+        {color of team}BucketTo{distance of target block from wall}{color of target block}Block
+        ex.
+        blueBucketToMiddleNeutralBlock
+
+        Naming scheme for TrajectoryActionBuilders that go from blocks to buckets:
+        {color of team}{distance of current block from wall}{color of block}BlockToBucket
+        ex.
+        blueMiddleNeutralBlockToBucket
+        */
         TrajectoryActionBuilder blueInitToBucket = robot.drive.actionBuilder(initialPose)
                 .setTangent(Math.toRadians(0))
                 .splineToLinearHeading(Positions.BUCKET_BLUE, Math.toRadians(315));

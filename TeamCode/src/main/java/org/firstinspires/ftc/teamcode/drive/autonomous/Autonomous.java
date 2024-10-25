@@ -458,18 +458,18 @@ public class Autonomous extends LinearOpMode {
 
         TrajectoryActionBuilder redBucketToFarRedBlock = robot.drive.actionBuilder(Positions.BUCKET_RED)
                 .setTangent(Math.toRadians(45))
-                .splineToLinearHeading(Positions.SAMPLE_NEUTRAL_RED_FAR, Math.toRadians(100));
+                .splineToLinearHeading(Positions.SAMPLE_RED_FAR, Math.toRadians(100));
         TrajectoryActionBuilder redFarRedBlockToBucket = robot.drive.actionBuilder(Positions.SAMPLE_NEUTRAL_RED_FAR)
                 .splineToLinearHeading(Positions.BUCKET_RED, 45);
         TrajectoryActionBuilder redBucketToMiddleRedBlock = robot.drive.actionBuilder(Positions.BUCKET_RED)
                 .setTangent(Math.toRadians(180))
-                .splineToLinearHeading(Positions.SAMPLE_NEUTRAL_RED_MIDDLE, 0);
+                .splineToLinearHeading(Positions.SAMPLE_RED_MIDDLE, 0);
         TrajectoryActionBuilder redMiddleRedBlockToBucket = robot.drive.actionBuilder(Positions.SAMPLE_NEUTRAL_RED_MIDDLE)
                 .setTangent(Math.toRadians(90))
                 .splineToLinearHeading(Positions.BUCKET_RED, 45);
         TrajectoryActionBuilder redBucketToCloseRedBlock = robot.drive.actionBuilder(Positions.BUCKET_RED)
                 .setTangent(Math.toRadians(180))
-                .splineToLinearHeading(Positions.SAMPLE_NEUTRAL_RED_CLOSE, 0);
+                .splineToLinearHeading(Positions.SAMPLE_RED_CLOSE, 0);
         TrajectoryActionBuilder redCloseRedBlockToBucket = robot.drive.actionBuilder(Positions.SAMPLE_NEUTRAL_RED_CLOSE)
                 .splineToLinearHeading(Positions.BUCKET_RED, 45);
         TrajectoryActionBuilder redBucketToSubmersible = robot.drive.actionBuilder(Positions.BUCKET_RED)

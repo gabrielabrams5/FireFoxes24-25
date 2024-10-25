@@ -493,23 +493,23 @@ public class Autonomous extends LinearOpMode {
             case BLUE_BUCKET:
                 actionToExecute = new SequentialAction(
                         robot.poseToBucket(blueInitToBucket),
-                        robot.bucketToSample(blueBucketToFarBlueBlock),
-                        robot.poseToBucket(blueFarBlueBlockToBucket),
-                        robot.bucketToSample(blueBucketToMiddleBlueBlock),
-                        robot.poseToBucket(blueMiddleBlueBlockToBucket),
-                        robot.bucketToSample(blueBucketToCloseBlueBlock),
-                        robot.poseToBucket(blueCloseBlueBlockToBucket)
-                );
-                break;
-            case BLUE_DIVE:
-                actionToExecute = new SequentialAction(
-                        robot.poseToBucket(blueInitToBucket),
                         robot.bucketToSample(blueBucketToFarNeutralBlock),
                         robot.poseToBucket(blueFarNeutralBlockToBucket),
                         robot.bucketToSample(blueBucketToMiddleNeutralBlock),
                         robot.poseToBucket(blueMiddleNeutralBlockToBucket),
                         robot.bucketToSample(blueBucketToCloseNeutralBlock),
                         robot.poseToBucket(blueCloseNeutralBlockToBucket)
+                );
+                break;
+            case BLUE_DIVE:
+                actionToExecute = new SequentialAction(
+                        robot.poseToBucket(blueInitToBucket),
+                        robot.bucketToSample(blueBucketToFarBlueBlock),
+                        robot.poseToBucket(blueFarBlueBlockToBucket),
+                        robot.bucketToSample(blueBucketToMiddleBlueBlock),
+                        robot.poseToBucket(blueMiddleBlueBlockToBucket),
+                        robot.bucketToSample(blueBucketToCloseBlueBlock),
+                        robot.poseToBucket(blueCloseBlueBlockToBucket)
                 );
                 break;
             case RED_BUCKET:

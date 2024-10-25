@@ -45,7 +45,7 @@ public class drive extends LinearOpMode {
         // Initialize drive motor variables
         DcMotor leftFrontDrive = hardwareMap.get(DcMotor.class, "lfMtr");
         DcMotor leftBackDrive = hardwareMap.get(DcMotor.class, "lbMtr");
-        DcMotor rightFrontDrive = hardwareMap.get(DcMotor.class, "rfMtr");
+        DcMotor rightFrontDrive = hardwareMap.get(DcMotor.class, "pr");
         DcMotor rightBackDrive = hardwareMap.get(DcMotor.class, "rbMtr");
         // Set drive motor directions
         leftFrontDrive.setDirection(DcMotor.Direction.REVERSE);
@@ -71,10 +71,15 @@ public class drive extends LinearOpMode {
         linearSlide1.setDirection(DcMotorSimple.Direction.FORWARD);
         linearSlide2.setDirection(DcMotorSimple.Direction.REVERSE);
 
+        // Initialize twist motor
+        DcMotor twist = hardwareMap.get(DcMotor.class, "twist");
+        twist.setDirection(DcMotorSimple.Direction.REVERSE);
+        twist.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        twist.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+
         // Initialize servos
         Servo claw = hardwareMap.get(Servo.class, "claw");
         Servo extension = hardwareMap.get(Servo.class, "extension");
-        Servo twist = hardwareMap.get(Servo.class, "twist");
 
         // Initialize IMU
         IMU imu = hardwareMap.get(IMU.class, "imu");
@@ -109,7 +114,11 @@ public class drive extends LinearOpMode {
         // Set servos to start positions
         claw.setPosition(parameters.CLAW_START);
         extension.setPosition(parameters.EXTENSION_START);
-        twist.setPosition(parameters.TWIST_START);
+
+        twist.setTargetPosition(parameters.TWIST_START);
+        twist.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        twist.setPower(0.3);
+
 
         // Robot is ready to start! Display message to screen
         telemetry.addData("Status", "Initialized");
@@ -194,8 +203,8 @@ public class drive extends LinearOpMode {
             linearSlide2.setTargetPosition(linearSlide2Target);
             linearSlide1.setMode(DcMotor.RunMode.RUN_TO_POSITION);
             linearSlide2.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-            linearSlide1.setPower(0.5);
-            linearSlide2.setPower(0.5);
+            linearSlide1.setPower(0.8);
+            linearSlide2.setPower(0.8);
 
             // Extension Servo
             if (gamepad2.right_bumper) {
@@ -207,11 +216,15 @@ public class drive extends LinearOpMode {
 
             // Twist Servo
             if (gamepad2.dpad_right) {
-                twist.setPosition(parameters.TWIST_LOW);
+                twist.setTargetPosition(parameters.TWIST_LOW);
             } else if (gamepad2.dpad_left) {
-                twist.setPosition(parameters.TWIST_HIGH);
+                twist.setTargetPosition(parameters.TWIST_HIGH);
             }
-            twist.setPosition(twist.getPosition() + (gamepad2.right_stick_y / 128));
+            else{
+                twist.setTargetPosition((int) (twist.getCurrentPosition() + (gamepad2.right_stick_y / 25)));
+            }
+            twist.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            twist.setPower(0.5);
 
             // Claw Servo
             if (gamepad2.b) {
@@ -235,7 +248,7 @@ public class drive extends LinearOpMode {
             telemetry.addData("Vert slides", "Position: " + linearSlide1.getCurrentPosition());
             telemetry.addData("Extension", "Position: " + extension.getPosition());
             telemetry.addData("Claw", "Position: " + claw.getPosition());
-            telemetry.addData("Twist", "Position: " + twist.getPosition());
+            telemetry.addData("Twist", "Position: " + twist.getCurrentPosition());
             telemetry.addData("Linear Slides", "LS1 Position: " + linearSlide1.getCurrentPosition() + "LS2 Position: " + linearSlide2.getCurrentPosition());
             telemetry.addData("Linear Slides", "LS1 Target: " + linearSlide1Target + "LS2 Target: " + linearSlide2Target);
             telemetry.addData("Front left/Right", "%4.2f, %4.2f", leftFrontPower, rightFrontPower);

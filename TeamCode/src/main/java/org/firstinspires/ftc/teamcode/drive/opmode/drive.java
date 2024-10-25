@@ -45,7 +45,7 @@ public class drive extends LinearOpMode {
         // Initialize drive motor variables
         DcMotor leftFrontDrive = hardwareMap.get(DcMotor.class, "lfMtr");
         DcMotor leftBackDrive = hardwareMap.get(DcMotor.class, "lbMtr");
-        DcMotor rightFrontDrive = hardwareMap.get(DcMotor.class, "rfMtr");
+        DcMotor rightFrontDrive = hardwareMap.get(DcMotor.class, "pr");
         DcMotor rightBackDrive = hardwareMap.get(DcMotor.class, "rbMtr");
         // Set drive motor directions
         leftFrontDrive.setDirection(DcMotor.Direction.REVERSE);
@@ -76,6 +76,7 @@ public class drive extends LinearOpMode {
 
         // Initialize twist motor
         DcMotor twist = hardwareMap.get(DcMotor.class, "twist");
+        twist.setDirection(DcMotorSimple.Direction.REVERSE);
         twist.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         twist.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
@@ -218,11 +219,13 @@ public class drive extends LinearOpMode {
 
             // Twist Servo
             if (gamepad2.dpad_right) {
-                twist.setTargetPosition((int) parameters.TWIST_LOW);
+                twist.setTargetPosition(parameters.TWIST_LOW);
             } else if (gamepad2.dpad_left) {
-                twist.setTargetPosition((int) parameters.TWIST_HIGH);
+                twist.setTargetPosition(parameters.TWIST_HIGH);
             }
-            twist.setTargetPosition((int) (twist.getCurrentPosition() + (gamepad2.right_stick_y / 128)));
+            else{
+                twist.setTargetPosition((int) (twist.getCurrentPosition() + (gamepad2.right_stick_y / 25)));
+            }
             twist.setMode(DcMotor.RunMode.RUN_TO_POSITION);
             twist.setPower(0.5);
 

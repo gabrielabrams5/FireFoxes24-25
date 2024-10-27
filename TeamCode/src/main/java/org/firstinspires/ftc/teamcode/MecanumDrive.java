@@ -98,11 +98,11 @@ public final class MecanumDrive {
         public final double EXTENSION_OUT = 1.0;
         public final double EXTENSION_IN = 0;
         public final int TWIST_START = -30;
-        public final int TWIST_HIGH = 80;
+        public final int TWIST_HIGH = 120;
         public final int TWIST_LOW = 0;
         public final int LINEAR_SLIDE_START = 50;
         public final int LINEAR_SLIDE_MIN = 200;
-        public final int LINEAR_SLIDE_MAX = 3350;
+        public final int LINEAR_SLIDE_MAX = 3250;
     }
 
     public static Params PARAMS = new Params();
@@ -235,7 +235,7 @@ public final class MecanumDrive {
         leftFront = hardwareMap.get(DcMotorEx.class, "lfMtr");
         leftBack = hardwareMap.get(DcMotorEx.class, "lbMtr");
         rightBack = hardwareMap.get(DcMotorEx.class, "rbMtr");
-        rightFront = hardwareMap.get(DcMotorEx.class, "pr");
+        rightFront = hardwareMap.get(DcMotorEx.class, "rfMtr");
 
         leftFront.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         leftBack.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);

@@ -66,6 +66,9 @@ public class drive extends LinearOpMode {
         linearSlide2.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         linearSlide1.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         linearSlide2.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        linearSlide1.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        linearSlide2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
 
         // Set direction of linear slides
         // ########################################################################################
@@ -79,6 +82,7 @@ public class drive extends LinearOpMode {
         twist.setDirection(DcMotorSimple.Direction.REVERSE);
         twist.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         twist.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        twist.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         // Initialize servos
         Servo claw = hardwareMap.get(Servo.class, "claw");
@@ -104,7 +108,7 @@ public class drive extends LinearOpMode {
         int linearSlide1Target = parameters.LINEAR_SLIDE_START;
         int linearSlide2Target = parameters.LINEAR_SLIDE_START;
 
-        int targetTwistPosition = 0;
+        double targetTwistPosition = 0;
         // Initialize robot position variables
         double robotAngle = 0;
         YawPitchRollAngles robotOrientation;
@@ -200,7 +204,7 @@ public class drive extends LinearOpMode {
             }
 
             // Linear Slide Adjustments
-            int linearAdjustment = (int) (gamepad2.left_stick_y * 20);
+            int linearAdjustment = (int) (gamepad2.left_stick_y * 30);
             linearSlide1Target -= linearAdjustment;
             linearSlide2Target -= linearAdjustment;
 
@@ -209,8 +213,16 @@ public class drive extends LinearOpMode {
             linearSlide2.setTargetPosition(linearSlide2Target);
             linearSlide1.setMode(DcMotor.RunMode.RUN_TO_POSITION);
             linearSlide2.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-            linearSlide1.setPower(0.8);
-            linearSlide2.setPower(0.8);
+            if (Math.abs(linearSlide1.getCurrentPosition() - linearSlide1Target) < 10){
+                linearSlide1.setPower(0.8);
+            } else {
+                linearSlide1.setPower(0.8);
+            }
+            if (Math.abs(linearSlide2.getCurrentPosition() - linearSlide2Target) < 10){
+                linearSlide2.setPower(0.8);
+            } else {
+                linearSlide2.setPower(0.8);
+            }
 
             // Extension Servo
             if (gamepad2.right_bumper) {
@@ -218,7 +230,9 @@ public class drive extends LinearOpMode {
             } else if (gamepad2.left_bumper) {
                 extension.setPosition(parameters.EXTENSION_IN);
             }
-            extension.setPosition(extension.getPosition() + (gamepad2.right_stick_x / 128));
+            else if (gamepad2.right_stick_x != 0){
+                extension.setPosition(extension.getPosition() + (gamepad2.right_stick_x / 64));
+            }
 
             // Twist Servo
             if (gamepad2.dpad_right) {
@@ -226,12 +240,35 @@ public class drive extends LinearOpMode {
             } else if (gamepad2.dpad_left) {
                 targetTwistPosition = parameters.TWIST_HIGH;
             }
-            else{
-                targetTwistPosition = targetTwistPosition + (int) (gamepad2.right_stick_y*2);
+            else if (gamepad2.right_stick_y != 0){
+                targetTwistPosition = targetTwistPosition + (gamepad2.right_stick_y);
             }
-            twist.setTargetPosition(targetTwistPosition);
+            twist.setTargetPosition((int)targetTwistPosition);
             twist.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-            twist.setPower((1/20)*Math.sqrt(Math.abs(twist.getCurrentPosition() - targetTwistPosition)));
+            double error = (twist.getCurrentPosition() - targetTwistPosition);
+            error = error > 0 ? error : Math.abs(error*1.2);
+            int negativeConstant;
+//            if (error >= 0){
+//                negativeConstant = 1;
+//            }
+//            else{
+//                negativeConstant = -1;
+//            }
+            double twistPower = - (Math.cos(Math.PI * error/120)-1)/2;
+//            double twistPower;
+//            if (error == 120){
+//                twistPower = 1.0;
+//            } else if (error == 0){
+//                continue;
+//            }
+//            else if (error <= 60){
+//                twistPower = ((double) 1 /2)*((Math.pow(2, ((20*error)/(120)) - 10)));
+//            }
+//            else{
+//                twistPower = ((double) 1 /2)*(2-(Math.pow(2, (-(20*error)/(120)) + 10)));
+//            }
+
+            twist.setPower(twistPower);
 
             // Claw Servo
             if (gamepad2.b) {
@@ -257,8 +294,9 @@ public class drive extends LinearOpMode {
             telemetry.addData("Claw", "Position: " + claw.getPosition());
             telemetry.addData("Twist", "Position: " + twist.getCurrentPosition());
             telemetry.addData("Twist", "Target Position: " + targetTwistPosition);
+            telemetry.addData("Twist", "Twist Power: " + twistPower);
             telemetry.addData("Linear Slides", "LS1 Position: " + linearSlide1.getCurrentPosition() + "LS2 Position: " + linearSlide2.getCurrentPosition());
-            telemetry.addData("Linear Slides", "LS1 Target: " + linearSlide1Target + "LS2 Target: " + linearSlide2Target);
+            telemetry.addData("Linear Slides", "LS2 Target: " + linearSlide1Target + "LS2 Target: " + linearSlide2Target);
             telemetry.addData("Front left/Right", "%4.2f, %4.2f", leftFrontPower, rightFrontPower);
             telemetry.addData("Back  left/Right", "%4.2f, %4.2f", leftBackPower, rightBackPower);
             telemetry.update();

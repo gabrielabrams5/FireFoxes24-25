@@ -53,7 +53,7 @@ public class Autonomous extends LinearOpMode {
         RED_BUCKET(new Pose2d(-35, -62, 180)),
         RED_DIVE(new Pose2d(0, 0, 0));
 
-        final Pose2d startPos;
+        Pose2d startPos;
 
         public Pose2d getStartPos() {
             return startPos;

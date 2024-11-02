@@ -226,8 +226,7 @@ public class drive extends LinearOpMode {
                 extension.setPosition(parameters.EXTENSION_OUT);
             } else if (gamepad2.left_bumper) {
                 extension.setPosition(parameters.EXTENSION_IN);
-            }
-            else if (gamepad2.right_stick_x != 0){
+            } else if (gamepad2.right_stick_x != 0){
                 extension.setPosition(extension.getPosition() + (gamepad2.right_stick_x / 64));
             }
 
@@ -236,10 +235,10 @@ public class drive extends LinearOpMode {
                 targetTwistPosition = parameters.TWIST_LOW;
             } else if (gamepad2.dpad_left) {
                 targetTwistPosition = parameters.TWIST_HIGH;
+            } else if (gamepad2.right_stick_y != 0){
+                targetTwistPosition -= (gamepad2.right_stick_y);
             }
-            else if (gamepad2.right_stick_y != 0){
-                targetTwistPosition = targetTwistPosition + (gamepad2.right_stick_y);
-            }
+
             twist.setTargetPosition((int)targetTwistPosition);
             twist.setMode(DcMotor.RunMode.RUN_TO_POSITION);
             double error = (twist.getCurrentPosition() - targetTwistPosition);

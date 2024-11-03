@@ -25,12 +25,12 @@ import org.firstinspires.ftc.teamcode.MecanumDrive;
 @com.qualcomm.robotcore.eventloop.opmode.Autonomous(name = "TEST_AUTONOMOUS", group = "Autonomous")
 public class Autonomous extends LinearOpMode {
     public static class Positions {
-        public static final Pose2d BUCKET_BLUE = new Pose2d(56, 56, Math.toRadians(45));
+        public static final Pose2d BUCKET_BLUE = new Pose2d(56, -56, Math.toRadians(45));
         public static final Pose2d BUCKET_RED = new Pose2d(-56, -56, Math.toRadians(225));
 
-        public static final Pose2d SAMPLE_NEUTRAL_BLUE_FAR = new Pose2d(35, 26, Math.toRadians(0));
-        public static final Pose2d SAMPLE_NEUTRAL_BLUE_MIDDLE = new Pose2d(45, 26, Math.toRadians(0));
-        public static final Pose2d SAMPLE_NEUTRAL_BLUE_CLOSE = new Pose2d(55, 26, Math.toRadians(0));
+        public static final Pose2d SAMPLE_NEUTRAL_BLUE_FAR = new Pose2d(35, -26, Math.toRadians(0));
+        public static final Pose2d SAMPLE_NEUTRAL_BLUE_MIDDLE = new Pose2d(45, -26, Math.toRadians(0));
+        public static final Pose2d SAMPLE_NEUTRAL_BLUE_CLOSE = new Pose2d(55, -26, Math.toRadians(0));
 
         public static final Pose2d SAMPLE_RED_FAR = new Pose2d(35, -26, Math.toRadians(0));
         public static final Pose2d SAMPLE_RED_MIDDLE = new Pose2d(45, -26, Math.toRadians(0));
@@ -48,7 +48,7 @@ public class Autonomous extends LinearOpMode {
     MecanumDrive.Params parameters = new MecanumDrive.Params();
 
     enum StartingPosition {
-        BLUE_BUCKET(new Pose2d(35, 62, 0)),
+        BLUE_BUCKET(new Pose2d(35, -62, 0)),
         BLUE_DIVE(new Pose2d(0, 0, 0)),
         RED_BUCKET(new Pose2d(-35, -62, 180)),
         RED_DIVE(new Pose2d(0, 0, 0));
@@ -138,8 +138,12 @@ public class Autonomous extends LinearOpMode {
         private final DcMotorEx linearSlide2;
 
         public Lift(HardwareMap hardwareMap) {
-            linearSlide1 = hardwareMap.get(DcMotorEx.class, "linearSlide1");
-            linearSlide2 = hardwareMap.get(DcMotorEx.class, "linearSlide2");
+            linearSlide1 = hardwareMap.get(DcMotorEx.class, "ls1");
+            linearSlide2 = hardwareMap.get(DcMotorEx.class, "ls2");
+            linearSlide1.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            linearSlide2.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            linearSlide1.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            linearSlide2.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
             linearSlide1.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
             linearSlide2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
             linearSlide1.setDirection(DcMotorSimple.Direction.FORWARD);
@@ -220,6 +224,7 @@ public class Autonomous extends LinearOpMode {
                 boolean isLinearSlide2Initialized = false;
                 packet.put("Linear Slide 1 Position", linearSlide1Position);
                 packet.put("Linear Slide 2 Position", linearSlide2Position);
+                packet.put("Linear Slide Target", parameters.LINEAR_SLIDE_START);
                 if (Math.abs(linearSlide1Position - parameters.LINEAR_SLIDE_START) < 5) {
                     isLinearSlide1Initialized = true;
                     linearSlide1.setPower(0);
@@ -287,7 +292,8 @@ public class Autonomous extends LinearOpMode {
         public Twist(HardwareMap hardwareMap) {
             twist = hardwareMap.get(DcMotorEx.class, "twist");
             twist.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-            twist.setDirection(DcMotorSimple.Direction.FORWARD);
+            twist.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            twist.setDirection(DcMotorSimple.Direction.REVERSE);
         }
 
         public class TwistUp implements Action {
@@ -296,13 +302,18 @@ public class Autonomous extends LinearOpMode {
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
                 if (!initialized) {
-                    twist.setPower(0.8);
+                    double error = (twist.getCurrentPosition() - parameters.TWIST_LOW);
+                    error = error > 0 ? error : Math.abs(error*1.2);
+                    twist.setPower(-(Math.cos(Math.PI * error/120)-1)/2);
                     initialized = true;
                 }
 
                 double pos = twist.getCurrentPosition();  // Assumes both slides at same pos
-                packet.put("Linear Slide Positions", pos);
-                if (pos < parameters.LINEAR_SLIDE_MAX) {    // Keep raising lift if it hasn't reached max height yet
+                packet.put("Twist Position", pos);
+                if (pos < parameters.TWIST_HIGH) {    // Keep raising lift if it hasn't reached max height yet
+                    double error = (twist.getCurrentPosition() - parameters.TWIST_LOW);
+                    error = error > 0 ? error : Math.abs(error*1.2);
+                    twist.setPower(-(Math.cos(Math.PI * error/120)-1)/2);
                     return true;
                 } else {
                     // If lift is at desired position, stop raising
@@ -322,13 +333,18 @@ public class Autonomous extends LinearOpMode {
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
                 if (!initialized) {
-                    twist.setPower(-0.8);
+                    double error = (twist.getCurrentPosition() - parameters.TWIST_LOW);
+                    error = error > 0 ? error : Math.abs(error*1.2);
+                    twist.setPower(-(Math.cos(Math.PI * error/120)-1)/2);
                     initialized = true;
                 }
 
                 double pos = twist.getCurrentPosition();
-                packet.put("liftPos", pos);
-                if (pos > parameters.LINEAR_SLIDE_MIN) {    // Keep lowering lift if it hasn't reached max height yet
+                packet.put("Twist Position", pos);
+                if (pos > parameters.TWIST_LOW) {    // Keep lowering lift if it hasn't reached max height yet
+                    double error = (twist.getCurrentPosition() - parameters.TWIST_LOW);
+                    error = error > 0 ? error : Math.abs(error*1.2);
+                    twist.setPower(-(Math.cos(Math.PI * error/120)-1)/2);
                     return true;
                 } else {
                     // If lift is at desired position, stop raising
@@ -356,10 +372,12 @@ public class Autonomous extends LinearOpMode {
                 double twistPosition = twist.getCurrentPosition();
                 boolean isTwistInitialized = false;
                 packet.put("Twist Position", twistPosition);
-                if (Math.abs(twistPosition - parameters.LINEAR_SLIDE_START) < 5) {
+                packet.put("Twist Target Position", parameters.TWIST_START);
+                if (Math.abs(twistPosition - parameters.TWIST_START) < 10) {
                     isTwistInitialized = true;
                     twist.setPower(0);
                 }
+
                 return !isTwistInitialized;
             }
         }

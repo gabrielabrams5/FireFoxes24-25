@@ -210,12 +210,15 @@ public class drive extends LinearOpMode {
             linearSlide2.setTargetPosition(linearSlide2Target);
             linearSlide1.setMode(DcMotor.RunMode.RUN_TO_POSITION);
             linearSlide2.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-            if (Math.abs(linearSlide1.getCurrentPosition() - linearSlide1Target) < 10){
+            linearSlide1Target = Math.min(linearSlide1Target, parameters.LINEAR_SLIDE_MAX);
+            linearSlide2Target = Math.min(linearSlide2Target, parameters.LINEAR_SLIDE_MAX);
+
+            if (Math.abs(linearSlide1.getCurrentPosition() - linearSlide1Target) >= 5){
                 linearSlide1.setPower(0.8);
             } else {
                 linearSlide1.setPower(0.8);
             }
-            if (Math.abs(linearSlide2.getCurrentPosition() - linearSlide2Target) < 10){
+            if (Math.abs(linearSlide2.getCurrentPosition() - linearSlide2Target) >= 5){
                 linearSlide2.setPower(0.8);
             } else {
                 linearSlide2.setPower(0.8);
@@ -243,26 +246,9 @@ public class drive extends LinearOpMode {
             twist.setMode(DcMotor.RunMode.RUN_TO_POSITION);
             double error = (twist.getCurrentPosition() - targetTwistPosition);
             error = error > 0 ? error : Math.abs(error*1.2);
-            int negativeConstant;
-//            if (error >= 0){
-//                negativeConstant = 1;
-//            }
-//            else{
-//                negativeConstant = -1;
-//            }
+
             double twistPower = - (Math.cos(Math.PI * error/120)-1)/2;
-//            double twistPower;
-//            if (error == 120){
-//                twistPower = 1.0;
-//            } else if (error == 0){
-//                continue;
-//            }
-//            else if (error <= 60){
-//                twistPower = ((double) 1 /2)*((Math.pow(2, ((20*error)/(120)) - 10)));
-//            }
-//            else{
-//                twistPower = ((double) 1 /2)*(2-(Math.pow(2, (-(20*error)/(120)) + 10)));
-//            }
+
 
             twist.setPower(twistPower);
 

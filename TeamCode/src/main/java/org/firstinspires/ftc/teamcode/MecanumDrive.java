@@ -97,12 +97,12 @@ public final class MecanumDrive {
         public final double EXTENSION_START = 0;
         public final double EXTENSION_OUT = 1.0;
         public final double EXTENSION_IN = 0;
-        public final int TWIST_START = -30;
+        public final int TWIST_START = -5;
         public final int TWIST_HIGH = 135;
         public final int TWIST_LOW = 0;
         public final int LINEAR_SLIDE_START = 50;
         public final int LINEAR_SLIDE_MIN = 200;
-        public final int LINEAR_SLIDE_MAX = 3500;
+        public final int LINEAR_SLIDE_MAX = 3100;
     }
 
     public static Params PARAMS = new Params();
@@ -222,7 +222,7 @@ public final class MecanumDrive {
     }
 
     public MecanumDrive(HardwareMap hardwareMap, Pose2d pose) {
-        this.pose = pose;
+        this.pose = new Pose2d(pose.position.x, -pose.position.y, pose.heading.toDouble());
 
         LynxFirmware.throwIfModulesAreOutdated(hardwareMap);
 

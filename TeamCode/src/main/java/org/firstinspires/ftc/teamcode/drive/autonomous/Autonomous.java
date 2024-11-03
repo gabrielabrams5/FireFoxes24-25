@@ -1,5 +1,4 @@
 package org.firstinspires.ftc.teamcode.drive.autonomous;
-import android.media.audiofx.BassBoost;
 
 import androidx.annotation.NonNull;
 import com.acmerobotics.dashboard.config.Config;
@@ -8,8 +7,8 @@ import com.acmerobotics.roadrunner.Action;
 import com.acmerobotics.roadrunner.ParallelAction;
 import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.SequentialAction;
+import com.acmerobotics.roadrunner.SleepAction;
 import com.acmerobotics.roadrunner.TrajectoryActionBuilder;
-import com.acmerobotics.roadrunner.Vector2d;
 import com.acmerobotics.roadrunner.ftc.Actions;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -25,24 +24,24 @@ import org.firstinspires.ftc.teamcode.MecanumDrive;
 @com.qualcomm.robotcore.eventloop.opmode.Autonomous(name = "TEST_AUTONOMOUS", group = "Autonomous")
 public class Autonomous extends LinearOpMode {
     public static class Positions {
-        public static final Pose2d BUCKET_BLUE = new Pose2d(56, -56, Math.toRadians(45));
-        public static final Pose2d BUCKET_RED = new Pose2d(-56, -56, Math.toRadians(225));
+        public static final Pose2d BUCKET_BLUE = new Pose2d(46, -48, Math.toRadians(-45));
+        public static final Pose2d BUCKET_RED = new Pose2d(-50, -50, Math.toRadians(225));
 
-        public static final Pose2d SAMPLE_NEUTRAL_BLUE_FAR = new Pose2d(35, -26, Math.toRadians(0));
-        public static final Pose2d SAMPLE_NEUTRAL_BLUE_MIDDLE = new Pose2d(45, -26, Math.toRadians(0));
-        public static final Pose2d SAMPLE_NEUTRAL_BLUE_CLOSE = new Pose2d(55, -26, Math.toRadians(0));
+        public static final Pose2d SAMPLE_NEUTRAL_BLUE_FAR = new Pose2d(35, -25, Math.toRadians(0));
+        public static final Pose2d SAMPLE_NEUTRAL_BLUE_MIDDLE = new Pose2d(45, -25, Math.toRadians(0));
+        public static final Pose2d SAMPLE_NEUTRAL_BLUE_CLOSE = new Pose2d(52, -25, Math.toRadians(0));
 
-        public static final Pose2d SAMPLE_RED_FAR = new Pose2d(35, -26, Math.toRadians(0));
-        public static final Pose2d SAMPLE_RED_MIDDLE = new Pose2d(45, -26, Math.toRadians(0));
-        public static final Pose2d SAMPLE_RED_CLOSE = new Pose2d(55, -26, Math.toRadians(0));
+        public static final Pose2d SAMPLE_RED_FAR = new Pose2d(35, -24, Math.toRadians(0));
+        public static final Pose2d SAMPLE_RED_MIDDLE = new Pose2d(45, -24, Math.toRadians(0));
+        public static final Pose2d SAMPLE_RED_CLOSE = new Pose2d(55, -24, Math.toRadians(0));
 
-        public static final Pose2d SAMPLE_BLUE_FAR = new Pose2d(-35, 26, Math.toRadians(180));
-        public static final Pose2d SAMPLE_BLUE_MIDDLE = new Pose2d(-45, 26, Math.toRadians(180));
-        public static final Pose2d SAMPLE_BLUE_CLOSE = new Pose2d(-55, 26, Math.toRadians(180));
+        public static final Pose2d SAMPLE_BLUE_FAR = new Pose2d(-35, 24, Math.toRadians(180));
+        public static final Pose2d SAMPLE_BLUE_MIDDLE = new Pose2d(-45, 24, Math.toRadians(180));
+        public static final Pose2d SAMPLE_BLUE_CLOSE = new Pose2d(-55, 24, Math.toRadians(180));
 
-        public static final Pose2d SAMPLE_NEUTRAL_RED_FAR = new Pose2d(-35, -26, Math.toRadians(180));
-        public static final Pose2d SAMPLE_NEUTRAL_RED_MIDDLE = new Pose2d(-45, -26, Math.toRadians(180));
-        public static final Pose2d SAMPLE_NEUTRAL_RED_CLOSE = new Pose2d(-55, -26, Math.toRadians(180));
+        public static final Pose2d SAMPLE_NEUTRAL_RED_FAR = new Pose2d(-35, -24, Math.toRadians(180));
+        public static final Pose2d SAMPLE_NEUTRAL_RED_MIDDLE = new Pose2d(-45, -24, Math.toRadians(180));
+        public static final Pose2d SAMPLE_NEUTRAL_RED_CLOSE = new Pose2d(-55, -24, Math.toRadians(180));
     }
 
     MecanumDrive.Params parameters = new MecanumDrive.Params();
@@ -82,9 +81,9 @@ public class Autonomous extends LinearOpMode {
         public Action Init() {
             return new SequentialAction(
                     claw.clawInit(),
+                    lift.liftInit(),
                     twist.twistInit(),
-                    extension.extensionInit(),
-                    lift.liftInit()
+                    extension.extensionInit()
             );
         }
 
@@ -92,10 +91,14 @@ public class Autonomous extends LinearOpMode {
             return new SequentialAction(
                     new ParallelAction(
                             poseToBucket.build(),
-                            lift.liftUp()
-//                            twist.twistUp()
+                            lift.liftUp(),
+                            twist.twistUp()
                     ),
-                    claw.clawOpen()
+                    extension.extensionOut(),
+                    new SleepAction(2),
+                    claw.clawOpen(),
+                    extension.extensionIn(),
+                    new SleepAction(1)
             );
         }
 
@@ -104,7 +107,7 @@ public class Autonomous extends LinearOpMode {
                     new ParallelAction(
                             bucketToSample.build(),
                             extension.extensionIn(),
-//                            twist.twistDown(),
+                            twist.twistDown(),
                             lift.liftDown(),
                             claw.clawOpen()
                     ),
@@ -115,9 +118,10 @@ public class Autonomous extends LinearOpMode {
         public Action GetSample() {
             return new SequentialAction(
                     extension.extensionOut(),
+                    new SleepAction(2),
                     claw.clawClose(),
                     new ParallelAction(
-//                            twist.twistUp()
+                            twist.twistUp(),
                             extension.extensionIn()
                     )
             );
@@ -137,6 +141,9 @@ public class Autonomous extends LinearOpMode {
         private final DcMotorEx linearSlide1;
         private final DcMotorEx linearSlide2;
 
+        int linearSlide1TargetPosition = parameters.LINEAR_SLIDE_START;
+        int linearSlide2TargetPosition = parameters.LINEAR_SLIDE_START;
+
         public Lift(HardwareMap hardwareMap) {
             linearSlide1 = hardwareMap.get(DcMotorEx.class, "ls1");
             linearSlide2 = hardwareMap.get(DcMotorEx.class, "ls2");
@@ -150,28 +157,63 @@ public class Autonomous extends LinearOpMode {
             linearSlide2.setDirection(DcMotorSimple.Direction.REVERSE);
         }
 
-        public class LiftUp implements Action {
+        public class LiftMove implements Action {
             private boolean initialized = false;
 
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
                 if (!initialized) {
-                    linearSlide1.setPower(0.8);
-                    linearSlide2.setPower(0.8);
-                    initialized = true;
+                    linearSlide1.setPower(0);
+                    linearSlide2.setPower(0);
                 }
 
-                double pos = linearSlide1.getCurrentPosition();  // Assumes both slides at same pos
-                packet.put("Linear Slide Positions", pos);
-                if (pos < parameters.LINEAR_SLIDE_MAX) {    // Keep raising lift if it hasn't reached max height yet
-                    return true;
+                double linearSlide1Pos = linearSlide1.getCurrentPosition();
+                double linearSlide2Pos = linearSlide2.getCurrentPosition();
+                packet.put("Linear Slide 1 Position", linearSlide1Pos);
+                packet.put("Linear Slide 2 Position", linearSlide2Pos);
+                if (Math.abs(linearSlide1Pos - linearSlide1TargetPosition) > 5 && Math.abs(linearSlide2Pos - linearSlide2TargetPosition) > 5) {    // Keep raising lift if it hasn't reached max height yet
+                    boolean isAbove = linearSlide1Pos > linearSlide1TargetPosition;
+                    linearSlide1.setPower(isAbove ? -0.8 : 0.8);
+                    linearSlide2.setPower(isAbove ? -0.8 : 0.8);
                 } else {
                     // If lift is at desired position, stop raising
                     linearSlide1.setPower(0);
                     linearSlide2.setPower(0);
-                    return false;
                 }
+                return true;
             }
+        }
+
+        public Action moveLift() {
+            return new LiftMove();
+        }
+
+        public class LiftUp implements Action {
+//            private boolean initialized = false;
+//
+            @Override
+            public boolean run(@NonNull TelemetryPacket packet) {
+                linearSlide1TargetPosition = parameters.LINEAR_SLIDE_MAX;
+                linearSlide2TargetPosition = parameters.LINEAR_SLIDE_MAX;
+                return false;
+            }
+//                if (!initialized) {
+//                    linearSlide1.setPower(0.8);
+//                    linearSlide2.setPower(0.8);
+//                    initialized = true;
+//                }
+//
+//                double pos = linearSlide1.getCurrentPosition();  // Assumes both slides at same pos
+//                packet.put("Linear Slide Positions", pos);
+//                if (pos < parameters.LINEAR_SLIDE_MAX) {    // Keep raising lift if it hasn't reached max height yet
+//                    return true;
+//                } else {
+//                    // If lift is at desired position, stop raising
+//                    linearSlide1.setPower(0.007);
+//                    linearSlide2.setPower(0.007);
+//                    return false;
+//                }
+//            }
         }
 
         public Action liftUp() {
@@ -183,21 +225,24 @@ public class Autonomous extends LinearOpMode {
 
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
-                if (!initialized) {
-                    linearSlide1.setPower(-0.8);
-                    linearSlide2.setPower(-0.8);
-                    initialized = true;
-                }
-
-                double pos = linearSlide1.getCurrentPosition();
-                packet.put("liftPos", pos);
-                if (pos > parameters.LINEAR_SLIDE_MIN) {    // Keep lowering lift if it hasn't reached max height yet
-                    return true;
-                } else {
-                    // If lift is at desired position, stop raising
-                    linearSlide1.setPower(0);
-                    return false;
-                }
+                linearSlide1TargetPosition = parameters.LINEAR_SLIDE_MIN;
+                linearSlide2TargetPosition = parameters.LINEAR_SLIDE_MIN;
+                return false;
+//                if (!initialized) {
+//                    linearSlide1.setPower(-0.8);
+//                    linearSlide2.setPower(-0.8);
+//                    initialized = true;
+//                }
+//
+//                double pos = linearSlide1.getCurrentPosition();
+//                packet.put("liftPos", pos);
+//                if (pos > parameters.LINEAR_SLIDE_MIN) {    // Keep lowering lift if it hasn't reached max height yet
+//                    return true;
+//                } else {
+//                    // If lift is at desired position, stop raising
+//                    linearSlide1.setPower(0);
+//                    return false;
+//                }
             }
         }
 
@@ -276,7 +321,7 @@ public class Autonomous extends LinearOpMode {
         public class ClawInit implements Action {
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
-                claw.setPosition(parameters.CLAW_START);
+                claw.setPosition(parameters.AUTON_CLAW_INIT);
                 return false;
             }
         }
@@ -288,21 +333,24 @@ public class Autonomous extends LinearOpMode {
 
     public class Twist {
         private final DcMotorEx twist;
+        private int targetPosition = parameters.TWIST_START;
 
         public Twist(HardwareMap hardwareMap) {
             twist = hardwareMap.get(DcMotorEx.class, "twist");
             twist.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
             twist.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            twist.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            twist.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
             twist.setDirection(DcMotorSimple.Direction.REVERSE);
         }
 
-        public class TwistUp implements Action {
+        public class TwistMove implements Action {
             private boolean initialized = false;
 
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
                 if (!initialized) {
-                    double error = (twist.getCurrentPosition() - parameters.TWIST_LOW);
+                    double error = (twist.getCurrentPosition() - targetPosition);
                     error = error > 0 ? error : Math.abs(error*1.2);
                     twist.setPower(-(Math.cos(Math.PI * error/120)-1)/2);
                     initialized = true;
@@ -310,16 +358,53 @@ public class Autonomous extends LinearOpMode {
 
                 double pos = twist.getCurrentPosition();  // Assumes both slides at same pos
                 packet.put("Twist Position", pos);
-                if (pos < parameters.TWIST_HIGH) {    // Keep raising lift if it hasn't reached max height yet
-                    double error = (twist.getCurrentPosition() - parameters.TWIST_LOW);
-                    error = error > 0 ? error : Math.abs(error*1.2);
+                packet.put("Twist Target Position", targetPosition);
+                double error = (twist.getCurrentPosition() - targetPosition);
+                if (error > 0){
+                    twist.setPower((Math.cos(Math.PI * error/120)-1)/2);
+                } else{
+                    error = 1.2*Math.abs(error);
                     twist.setPower(-(Math.cos(Math.PI * error/120)-1)/2);
-                    return true;
-                } else {
-                    // If lift is at desired position, stop raising
-                    twist.setPower(0);
-                    return false;
                 }
+                return true;
+            }
+        }
+
+        public Action moveTwist() {
+            return new TwistMove();
+        }
+
+        public class TwistUp implements Action {
+            private boolean initialized = false;
+
+            @Override
+            public boolean run(@NonNull TelemetryPacket packet) {
+                targetPosition = parameters.TWIST_HIGH;
+                return false;
+//                if (!initialized) {
+//                    double error = (twist.getCurrentPosition() - parameters.TWIST_HIGH);
+//                    error = error > 0 ? error : Math.abs(error*1.2);
+//                    twist.setPower(-(Math.cos(Math.PI * error/120)-1)/2);
+//                    initialized = true;
+//                }
+//
+//                double pos = twist.getCurrentPosition();  // Assumes both slides at same pos
+//                packet.put("Twist Position", pos);
+//                packet.put("Twist Target Position", parameters.TWIST_HIGH);
+//                if (Math.abs(pos - parameters.TWIST_HIGH) > 5) {    // Keep raising lift if it hasn't reached max height yet
+//                    double error = (twist.getCurrentPosition() - parameters.TWIST_HIGH);
+//                    if (error > 0){
+//                        twist.setPower((Math.cos(Math.PI * error/120)-1)/2);
+//                    } else{
+//                        error = 1.2*Math.abs(error);
+//                        twist.setPower(-(Math.cos(Math.PI * error/120)-1)/2);
+//                    }
+//                    return true;
+//                } else {
+//                    // If lift is at desired position, stop raising
+//                    twist.setPower(0.01);
+//                    return false;
+//                }
             }
         }
 
@@ -332,25 +417,26 @@ public class Autonomous extends LinearOpMode {
 
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
-                if (!initialized) {
-                    double error = (twist.getCurrentPosition() - parameters.TWIST_LOW);
-                    error = error > 0 ? error : Math.abs(error*1.2);
-                    twist.setPower(-(Math.cos(Math.PI * error/120)-1)/2);
-                    initialized = true;
-                }
-
-                double pos = twist.getCurrentPosition();
-                packet.put("Twist Position", pos);
-                if (pos > parameters.TWIST_LOW) {    // Keep lowering lift if it hasn't reached max height yet
-                    double error = (twist.getCurrentPosition() - parameters.TWIST_LOW);
-                    error = error > 0 ? error : Math.abs(error*1.2);
-                    twist.setPower(-(Math.cos(Math.PI * error/120)-1)/2);
-                    return true;
-                } else {
-                    // If lift is at desired position, stop raising
-                    twist.setPower(0);
-                    return false;
-                }
+                targetPosition = parameters.TWIST_LOW;
+                return false;
+//                if (!initialized) {
+//                    double error = (twist.getCurrentPosition() - parameters.TWIST_LOW);
+//                    twist.setPower((Math.cos(Math.PI * error/120)-1)/2);
+//                    initialized = true;
+//                }
+//
+//                double pos = twist.getCurrentPosition();
+//                packet.put("Twist Position", pos);
+//                packet.put("Twist Target Position", parameters.TWIST_LOW);
+//                if (pos > parameters.TWIST_LOW) {    // Keep lowering lift if it hasn't reached max height yet
+//                    double error = (twist.getCurrentPosition() - parameters.TWIST_LOW);
+//                    twist.setPower((Math.cos(Math.PI * error/120)-1)/2);
+//                    return true;
+//                } else {
+//                    // If lift is at desired position, stop lowering
+//                    twist.setPower(0);
+//                    return false;
+//                }
             }
         }
 
@@ -365,7 +451,7 @@ public class Autonomous extends LinearOpMode {
             public boolean run(@NonNull TelemetryPacket packet) {
                 if (!initialized) {
                     twist.setPower(
-                            twist.getCurrentPosition() > parameters.TWIST_START ? -0.5 : 0.5);
+                            twist.getCurrentPosition() > parameters.TWIST_START ? -0.2 : 0.2);
                     initialized = true;
                 }
 
@@ -373,7 +459,7 @@ public class Autonomous extends LinearOpMode {
                 boolean isTwistInitialized = false;
                 packet.put("Twist Position", twistPosition);
                 packet.put("Twist Target Position", parameters.TWIST_START);
-                if (Math.abs(twistPosition - parameters.TWIST_START) < 10) {
+                if (Math.abs(twistPosition - parameters.TWIST_START) < 5) {
                     isTwistInitialized = true;
                     twist.setPower(0);
                 }
@@ -389,28 +475,16 @@ public class Autonomous extends LinearOpMode {
 
 
     public class Extension {
-        Servo Extension;
+        private Servo extension;
 
         public Extension(HardwareMap hardwareMap) {
-            Extension = hardwareMap.get(Servo.class, "extension");
-        }
-
-        public class ExtensionOut implements Action {
-            @Override
-            public boolean run(@NonNull TelemetryPacket packet) {
-                Extension.setPosition(parameters.EXTENSION_OUT);
-                return false;
-            }
-        }
-
-        public Action extensionOut() {
-            return new ExtensionOut();
+            extension = hardwareMap.get(Servo.class, "extension");
         }
 
         public class ExtensionIn implements Action {
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
-                Extension.setPosition(parameters.EXTENSION_IN);
+                extension.setPosition(parameters.EXTENSION_IN);
                 return false;
             }
         }
@@ -419,10 +493,22 @@ public class Autonomous extends LinearOpMode {
             return new ExtensionIn();
         }
 
+        public class ExtensionOut implements Action {
+            @Override
+            public boolean run(@NonNull TelemetryPacket packet) {
+                extension.setPosition(parameters.EXTENSION_MIDDLE);
+                return false;
+            }
+        }
+
+        public Action extensionOut() {
+            return new ExtensionOut();
+        }
+
         public class ExtensionInit implements Action {
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
-                Extension.setPosition(parameters.EXTENSION_START);
+                extension.setPosition(parameters.EXTENSION_START);
                 return false;
             }
         }
@@ -608,7 +694,11 @@ public class Autonomous extends LinearOpMode {
         if (isStopRequested()) return;
 
         Actions.runBlocking(
-                actionToExecute
+                new ParallelAction(
+                        robot.twist.moveTwist(),
+                    robot.lift.moveLift(),
+                    actionToExecute
+                )
         );
     }
 }

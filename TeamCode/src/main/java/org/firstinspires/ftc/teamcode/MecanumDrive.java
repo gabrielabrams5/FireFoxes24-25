@@ -92,15 +92,17 @@ public final class MecanumDrive {
         public double headingVelGain = 1.0; // shared with turn
 
         public final double CLAW_START = 0.9;
+        public final double AUTON_CLAW_INIT = 0.45;
         public final double CLAW_OPEN = 0.75;
         public final double CLAW_CLOSE = 0.45;
-        public final double EXTENSION_START = 0;
+        public final double EXTENSION_START = 0.1;
         public final double EXTENSION_OUT = 1.0;
-        public final double EXTENSION_IN = 0;
-        public final int TWIST_START = -5;
-        public final int TWIST_HIGH = 135;
+        public final double EXTENSION_IN = 0.1;
+        public final double EXTENSION_MIDDLE = 0.5;
+        public final int TWIST_START = -10;
+        public final int TWIST_HIGH = 125;
         public final int TWIST_LOW = 0;
-        public final int LINEAR_SLIDE_START = 50;
+        public final int LINEAR_SLIDE_START = 150;
         public final int LINEAR_SLIDE_MIN = 200;
         public final int LINEAR_SLIDE_MAX = 3100;
     }
@@ -222,7 +224,11 @@ public final class MecanumDrive {
     }
 
     public MecanumDrive(HardwareMap hardwareMap, Pose2d pose) {
-        this.pose = new Pose2d(pose.position.x, -pose.position.y, pose.heading.toDouble());
+        if (pose != null){
+            this.pose = new Pose2d(pose.position.x, -pose.position.y, pose.heading.toDouble());
+        } else{
+            this.pose = pose;
+        }
 
         LynxFirmware.throwIfModulesAreOutdated(hardwareMap);
 

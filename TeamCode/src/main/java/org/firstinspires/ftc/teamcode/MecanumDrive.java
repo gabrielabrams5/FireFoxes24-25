@@ -98,15 +98,16 @@ public final class MecanumDrive {
         public final double EXTENSION_START = 0.1;
         public final double EXTENSION_OUT = 1.0;
         public final double EXTENSION_IN = 0.1;
-        public final double EXTENSION_MIDDLE = 0.5;
+        public final double EXTENSION_MIDDLE = 0.4;
+        public final double EXTENSION_BUCKET = 0.6;
         public final int TWIST_START = -10;
         public final int TWIST_HIGH = 125;
         public final int TWIST_LOW = 0;
         public final int LINEAR_SLIDE_START = 150;
-        public final int LINEAR_SLIDE_ROCK_BOTTOM = 0;
+        public final int LINEAR_SLIDE_ROCK_BOTTOM = 100;
         public final int LINEAR_SLIDE_MIN = 200;
-        public final int LINEAR_SLIDE_FLOAT = 250;
-        public final int LINEAR_SLIDE_MAX = 3100;
+        public final int LINEAR_SLIDE_FLOAT = 450;
+        public final int LINEAR_SLIDE_MAX = 3150;
     }
 
     public static Params PARAMS = new Params();

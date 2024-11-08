@@ -24,18 +24,18 @@ import org.firstinspires.ftc.teamcode.MecanumDrive;
 @com.qualcomm.robotcore.eventloop.opmode.Autonomous(name = "TEST_AUTONOMOUS", group = "Autonomous")
 public class Autonomous extends LinearOpMode {
     public static class Positions {
-        public static final Pose2d BUCKET_BLUE = new Pose2d(46, -48, Math.toRadians(-45));
-        public static final Pose2d BUCKET_RED = new Pose2d(-50, -50, Math.toRadians(225));
+        public static final Pose2d BUCKET_BLUE = new Pose2d(48, -46, Math.toRadians(-45));
+        public static final Pose2d BUCKET_RED = new Pose2d(-46, 48, Math.toRadians(225));
 
-        public static final Pose2d SAMPLE_NEUTRAL_BLUE_FAR = new Pose2d(35, -26, Math.toRadians(0));
+        public static final Pose2d SAMPLE_NEUTRAL_BLUE_FAR = new Pose2d(34.5, -26, Math.toRadians(0));
         public static final Pose2d SAMPLE_NEUTRAL_BLUE_MIDDLE = new Pose2d(45, -26, Math.toRadians(0));
-        public static final Pose2d SAMPLE_NEUTRAL_BLUE_CLOSE = new Pose2d(52, -26, Math.toRadians(0));
+        public static final Pose2d SAMPLE_NEUTRAL_BLUE_CLOSE = new Pose2d(55, -26, Math.toRadians(0));
 
         public static final Pose2d SAMPLE_RED_FAR = new Pose2d(35, -24, Math.toRadians(0));
         public static final Pose2d SAMPLE_RED_MIDDLE = new Pose2d(45, -24, Math.toRadians(0));
         public static final Pose2d SAMPLE_RED_CLOSE = new Pose2d(55, -24, Math.toRadians(0));
 
-        public static final Pose2d SAMPLE_BLUE_FAR = new Pose2d(-35, 24, Math.toRadians(180));
+        public static final Pose2d SAMPLE_BLUE_FAR = new Pose2d(-35.5, 24, Math.toRadians(180));
         public static final Pose2d SAMPLE_BLUE_MIDDLE = new Pose2d(-45, 24, Math.toRadians(180));
         public static final Pose2d SAMPLE_BLUE_CLOSE = new Pose2d(-55, 24, Math.toRadians(180));
 
@@ -94,9 +94,11 @@ public class Autonomous extends LinearOpMode {
                             lift.liftUp(),
                             twist.twistUp()
                     ),
+                    new SleepAction(1),
                     extension.extensionOut(),
-                    new SleepAction(2),
+                    new SleepAction(1),
                     claw.clawOpen(),
+                    new SleepAction(1),
                     extension.extensionIn(),
                     new SleepAction(1)
             );
@@ -118,8 +120,9 @@ public class Autonomous extends LinearOpMode {
         public Action GetSample() {
             return new SequentialAction(
                     extension.extensionOut(),
+                    new SleepAction(1),
                     lift.liftBottom(),
-                    new SleepAction(1.5),
+                    new SleepAction(0.5),
                     claw.clawClose(),
                     new SleepAction(1),
                     lift.liftFloat(),
@@ -362,10 +365,10 @@ public class Autonomous extends LinearOpMode {
 
         public Twist(HardwareMap hardwareMap) {
             twist = hardwareMap.get(DcMotorEx.class, "twist");
-            twist.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-            twist.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-            twist.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-            twist.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+            twist.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
+            twist.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
+            twist.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
+            twist.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
             twist.setDirection(DcMotorSimple.Direction.REVERSE);
         }
 
@@ -377,7 +380,7 @@ public class Autonomous extends LinearOpMode {
                 if (!initialized) {
                     double error = (twist.getCurrentPosition() - targetPosition);
                     error = error > 0 ? error : Math.abs(error*1.2);
-                    twist.setPower(-(Math.cos(Math.PI * error/120)-1)/2);
+                    twist.setVelocity(300*-(Math.cos(Math.PI * error/120)-1)/2);
                     initialized = true;
                 }
 
@@ -386,10 +389,10 @@ public class Autonomous extends LinearOpMode {
                 packet.put("Twist Target Position", targetPosition);
                 double error = (twist.getCurrentPosition() - targetPosition);
                 if (error > 0){
-                    twist.setPower((Math.cos(Math.PI * error/120)-1)/2);
+                    twist.setVelocity(300*(Math.cos(Math.PI * error/120)-1)/2);
                 } else{
                     error = 1.2*Math.abs(error);
-                    twist.setPower(-(Math.cos(Math.PI * error/120)-1)/2);
+                    twist.setVelocity(300*-(Math.cos(Math.PI * error/120)-1)/2);
                 }
                 return true;
             }
@@ -569,22 +572,22 @@ public class Autonomous extends LinearOpMode {
                 .setTangent(Math.toRadians(0))
                 .splineToLinearHeading(Positions.BUCKET_BLUE, Math.toRadians(315));
         TrajectoryActionBuilder blueBucketToFarNeutralBlock = robot.drive.actionBuilder(Positions.BUCKET_BLUE)
-                .setTangent(Math.toRadians(225))
-                .splineToLinearHeading(Positions.SAMPLE_NEUTRAL_BLUE_FAR, Math.toRadians(-80));
+                .setTangent(Math.toRadians(-200))
+                .splineToLinearHeading(Positions.SAMPLE_NEUTRAL_BLUE_FAR, Math.toRadians(-100));
         TrajectoryActionBuilder blueFarNeutralBlockToBucket = robot.drive.actionBuilder(Positions.SAMPLE_NEUTRAL_BLUE_FAR)
-                .setTangent(Math.toRadians(90))
+                .setTangent(Math.toRadians(-90))
                 .splineToLinearHeading(Positions.BUCKET_BLUE, Math.toRadians(45));
         TrajectoryActionBuilder blueBucketToMiddleNeutralBlock = robot.drive.actionBuilder(Positions.BUCKET_BLUE)
-                .setTangent(Math.toRadians(225))
+                .setTangent(Math.toRadians(-225))
                 .splineToLinearHeading(Positions.SAMPLE_NEUTRAL_BLUE_MIDDLE, Math.toRadians(-90));
         TrajectoryActionBuilder blueMiddleNeutralBlockToBucket = robot.drive.actionBuilder(Positions.SAMPLE_NEUTRAL_BLUE_MIDDLE)
-                .setTangent(Math.toRadians(90))
+                .setTangent(Math.toRadians(-90))
                 .splineToLinearHeading(Positions.BUCKET_BLUE, Math.toRadians(45));
         TrajectoryActionBuilder blueBucketToCloseNeutralBlock = robot.drive.actionBuilder(Positions.BUCKET_BLUE)
-                .setTangent(Math.toRadians(225))
+                .setTangent(Math.toRadians(-225))
                 .splineToLinearHeading(Positions.SAMPLE_NEUTRAL_BLUE_CLOSE, Math.toRadians(-60));
         TrajectoryActionBuilder blueCloseNeutralBlockToBucket = robot.drive.actionBuilder(Positions.SAMPLE_NEUTRAL_BLUE_CLOSE)
-                .setTangent(Math.toRadians(120))
+                .setTangent(Math.toRadians(-120))
                 .splineToLinearHeading(Positions.BUCKET_BLUE, Math.toRadians(45));
 
         TrajectoryActionBuilder blueBucketToFarBlueBlock = robot.drive.actionBuilder(Positions.BUCKET_BLUE)

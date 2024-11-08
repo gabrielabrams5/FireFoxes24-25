@@ -32,6 +32,9 @@ public class drive extends LinearOpMode {
      *   UP     - Up dPad
      *   DOWN   - Down dPad
      *   ADJUST - Left Stick Y
+     * Macros:
+     *   OUT+HIGH+UP     - Right Trigger + Up dPad
+     *   IN+LOW+DOWN     - Left Trigger + Down dPad
      */
 
     @Override
@@ -192,12 +195,12 @@ public class drive extends LinearOpMode {
             }
 
             // Linear Slides
-            if (gamepad2.dpad_up) {
+            if (gamepad2.dpad_up && !(gamepad2.right_trigger > 0.5)) {
                 linearSlide1Target = parameters.LINEAR_SLIDE_MAX;
                 linearSlide2Target = parameters.LINEAR_SLIDE_MAX;
-            } else if (gamepad2.dpad_down) {
-                linearSlide1Target = parameters.LINEAR_SLIDE_MIN;
-                linearSlide2Target = parameters.LINEAR_SLIDE_MIN;
+            } else if (gamepad2.dpad_down && !(gamepad2.left_trigger > 0.5)) {
+                linearSlide1Target = parameters.LINEAR_SLIDE_FLOAT;
+                linearSlide2Target = parameters.LINEAR_SLIDE_FLOAT;
             }
 
             // Linear Slide Adjustments
@@ -257,6 +260,22 @@ public class drive extends LinearOpMode {
                 claw.setPosition(parameters.CLAW_OPEN);
             } else if (gamepad2.x) {
                 claw.setPosition(parameters.CLAW_CLOSE);
+            }
+
+            // Out+Up Macro
+            if (gamepad2.right_trigger > 0.5 && gamepad2.dpad_up) {
+                extension.setPosition(parameters.EXTENSION_OUT);
+                linearSlide1Target = parameters.LINEAR_SLIDE_MAX;
+                linearSlide2Target = parameters.LINEAR_SLIDE_MAX;
+                targetTwistPosition = parameters.TWIST_HIGH;
+            }
+
+            // In+Down Macro
+            if (gamepad2.left_trigger > 0.5 && gamepad2.dpad_down) {
+                extension.setPosition(parameters.EXTENSION_IN);
+                linearSlide1Target = parameters.LINEAR_SLIDE_FLOAT;
+                linearSlide2Target = parameters.LINEAR_SLIDE_FLOAT;
+                targetTwistPosition = parameters.TWIST_LOW;
             }
 
             // Send calculated power to wheels, convert power to rpm

@@ -34,8 +34,10 @@ public class drive extends LinearOpMode {
      *   DOWN   - Down dPad
      *   ADJUST - Left Stick Y
      * Macros:
-     *   OUT+HIGH+UP     - Right Trigger + Up dPad
+     *   OUT+HIGH+UP     - Left Trigger + Up dPad
      *   IN+LOW+DOWN     - Left Trigger + Down dPad
+     *   OUT+HIGH+UP (Specimen)     - Right Trigger + Up dPad
+     *   IN+LOW+DOWN (Specimen)     - Right Trigger + Down dPad
      */
 
     @Override
@@ -129,7 +131,7 @@ public class drive extends LinearOpMode {
         twist.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         twist.setPower((1/20)*Math.sqrt(Math.abs(twist.getCurrentPosition() - targetTwistPosition)));
 
-
+        double previousRightJoystick = 0;
 
         // Robot is ready to start! Display message to screen
         telemetry.addData("Status", "Initialized");
@@ -238,26 +240,31 @@ public class drive extends LinearOpMode {
             }
 
             // Twist Servo
-            if (gamepad2.dpad_right) {
+            if (gamepad2.dpad_right && !(gamepad2.right_trigger > 0.5)) {
                 targetTwistPosition = parameters.TWIST_LOW;
-            } else if (gamepad2.dpad_left) {
+            } else if (gamepad2.dpad_left && !(gamepad2.right_trigger > 0.5)) {
                 targetTwistPosition = parameters.TWIST_HIGH;
-            } else if (gamepad2.right_stick_y != 0){
-                targetTwistPosition -= (gamepad2.right_stick_y);
+            } else if (gamepad2.right_stick_y != 0 && !(gamepad2.right_trigger > 0.5)){
+                targetTwistPosition -= (gamepad2.right_stick_y*2);
             }
 
             twist.setTargetPosition((int)targetTwistPosition);
             twist.setMode(DcMotorEx.RunMode.RUN_TO_POSITION);
 
             double error = (twist.getCurrentPosition() - targetTwistPosition);
-            error = error > 0 ? error : Math.abs(error*1.5);
+            error = error > 0 ? error*1.2 : Math.abs(error*1.5);
 
             error = Math.min(119, error);
 
             double twistPower = - (Math.cos(Math.PI * error/120)-1)/2;
 
+            if (Math.abs(previousRightJoystick) > 0.1) {
+                twist.setPower(0.8 * gamepad2.right_stick_y / Math.abs(gamepad2.right_stick_y));
+            } else {
+                twist.setVelocity(twistPower * 300);
+            }
 
-            twist.setVelocity(twistPower*300);
+            previousRightJoystick = gamepad2.right_stick_y;
 
             // Claw Servo
             if (gamepad2.b) {
@@ -266,20 +273,31 @@ public class drive extends LinearOpMode {
                 claw.setPosition(parameters.CLAW_CLOSE);
             }
 
-            // Out+Up Macro
-            if (gamepad2.right_trigger > 0.5 && gamepad2.dpad_up) {
+            // Bucket Out+Up Macro
+            if (gamepad2.left_trigger > 0.5 && gamepad2.dpad_up) {
                 extension.setPosition(parameters.EXTENSION_OUT);
                 linearSlide1Target = parameters.LINEAR_SLIDE_MAX;
                 linearSlide2Target = parameters.LINEAR_SLIDE_MAX;
                 targetTwistPosition = parameters.TWIST_HIGH;
             }
 
-            // In+Down Macro
+            // Bucket In+Down Macro
             if (gamepad2.left_trigger > 0.5 && gamepad2.dpad_down) {
                 extension.setPosition(parameters.EXTENSION_IN);
                 linearSlide1Target = parameters.LINEAR_SLIDE_FLOAT;
                 linearSlide2Target = parameters.LINEAR_SLIDE_FLOAT;
                 targetTwistPosition = parameters.TWIST_LOW;
+            }
+
+            // Specimen Out+Up Macro
+            if (gamepad2.right_trigger > 0.5 && gamepad2.dpad_right) {
+                targetTwistPosition = parameters.TWIST_SPECIMEN;
+            }
+
+            // Specimen In+Down Macro
+            if (gamepad2.right_trigger > 0.5 && gamepad2.dpad_up) {
+                extension.setPosition(parameters.EXTENSION_IN);
+                targetTwistPosition = parameters.TWIST_SPECIMEN;
             }
 
             // Send calculated power to wheels, convert power to rpm

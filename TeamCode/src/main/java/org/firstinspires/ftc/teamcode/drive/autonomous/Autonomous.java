@@ -27,9 +27,9 @@ public class Autonomous extends LinearOpMode {
         public static final Pose2d BUCKET_BLUE = new Pose2d(46, -48, Math.toRadians(-45));
         public static final Pose2d BUCKET_RED = new Pose2d(-50, -50, Math.toRadians(225));
 
-        public static final Pose2d SAMPLE_NEUTRAL_BLUE_FAR = new Pose2d(35, -25, Math.toRadians(0));
-        public static final Pose2d SAMPLE_NEUTRAL_BLUE_MIDDLE = new Pose2d(45, -25, Math.toRadians(0));
-        public static final Pose2d SAMPLE_NEUTRAL_BLUE_CLOSE = new Pose2d(52, -25, Math.toRadians(0));
+        public static final Pose2d SAMPLE_NEUTRAL_BLUE_FAR = new Pose2d(35, -26, Math.toRadians(0));
+        public static final Pose2d SAMPLE_NEUTRAL_BLUE_MIDDLE = new Pose2d(45, -26, Math.toRadians(0));
+        public static final Pose2d SAMPLE_NEUTRAL_BLUE_CLOSE = new Pose2d(52, -26, Math.toRadians(0));
 
         public static final Pose2d SAMPLE_RED_FAR = new Pose2d(35, -24, Math.toRadians(0));
         public static final Pose2d SAMPLE_RED_MIDDLE = new Pose2d(45, -24, Math.toRadians(0));
@@ -108,7 +108,7 @@ public class Autonomous extends LinearOpMode {
                             bucketToSample.build(),
                             extension.extensionIn(),
                             twist.twistDown(),
-                            lift.liftDown(),
+                            lift.liftFloat(),
                             claw.clawOpen()
                     ),
                     GetSample()
@@ -118,8 +118,11 @@ public class Autonomous extends LinearOpMode {
         public Action GetSample() {
             return new SequentialAction(
                     extension.extensionOut(),
-                    new SleepAction(2),
+                    lift.liftBottom(),
+                    new SleepAction(1.5),
                     claw.clawClose(),
+                    new SleepAction(1),
+                    lift.liftFloat(),
                     new ParallelAction(
                             twist.twistUp(),
                             extension.extensionIn()
@@ -165,19 +168,35 @@ public class Autonomous extends LinearOpMode {
                 if (!initialized) {
                     linearSlide1.setPower(0);
                     linearSlide2.setPower(0);
+                    initialized = true;
                 }
 
                 double linearSlide1Pos = linearSlide1.getCurrentPosition();
                 double linearSlide2Pos = linearSlide2.getCurrentPosition();
                 packet.put("Linear Slide 1 Position", linearSlide1Pos);
+                packet.put("Linear Slide 1 Target Position", linearSlide1TargetPosition);
+                packet.put("Linear Slide 2 Target Position", linearSlide2TargetPosition);
                 packet.put("Linear Slide 2 Position", linearSlide2Pos);
-                if (Math.abs(linearSlide1Pos - linearSlide1TargetPosition) > 5 && Math.abs(linearSlide2Pos - linearSlide2TargetPosition) > 5) {    // Keep raising lift if it hasn't reached max height yet
-                    boolean isAbove = linearSlide1Pos > linearSlide1TargetPosition;
-                    linearSlide1.setPower(isAbove ? -0.8 : 0.8);
-                    linearSlide2.setPower(isAbove ? -0.8 : 0.8);
+                double linearSlide1Error = Math.abs(linearSlide1TargetPosition - linearSlide1Pos);
+                double linearSlide2Error = Math.abs(linearSlide2TargetPosition - linearSlide2Pos);
+                boolean isAbove1 = linearSlide1Pos > linearSlide1TargetPosition;
+                boolean isAbove2 = linearSlide2Pos > linearSlide2TargetPosition;
+
+                if (linearSlide1Error > 50) {
+                    linearSlide1.setPower(isAbove1 ? -0.8 : 0.8);
+                }
+                else if (linearSlide1Error > 25) {
+                    linearSlide1.setPower(isAbove1 ? -0.2 : 0.2);
                 } else {
-                    // If lift is at desired position, stop raising
                     linearSlide1.setPower(0);
+                }
+
+                if (linearSlide2Error > 50) {
+                    linearSlide2.setPower(isAbove2 ? -0.8 : 0.8);
+                }
+                else if (linearSlide2Error > 25) {
+                    linearSlide2.setPower(isAbove2 ? -0.2 : 0.2);
+                } else {
                     linearSlide2.setPower(0);
                 }
                 return true;
@@ -197,27 +216,36 @@ public class Autonomous extends LinearOpMode {
                 linearSlide2TargetPosition = parameters.LINEAR_SLIDE_MAX;
                 return false;
             }
-//                if (!initialized) {
-//                    linearSlide1.setPower(0.8);
-//                    linearSlide2.setPower(0.8);
-//                    initialized = true;
-//                }
-//
-//                double pos = linearSlide1.getCurrentPosition();  // Assumes both slides at same pos
-//                packet.put("Linear Slide Positions", pos);
-//                if (pos < parameters.LINEAR_SLIDE_MAX) {    // Keep raising lift if it hasn't reached max height yet
-//                    return true;
-//                } else {
-//                    // If lift is at desired position, stop raising
-//                    linearSlide1.setPower(0.007);
-//                    linearSlide2.setPower(0.007);
-//                    return false;
-//                }
-//            }
         }
 
         public Action liftUp() {
             return new LiftUp();
+        }
+
+        public class LiftFloat implements Action {
+            @Override
+            public boolean run(@NonNull TelemetryPacket packet) {
+                linearSlide1TargetPosition = parameters.LINEAR_SLIDE_FLOAT;
+                linearSlide2TargetPosition = parameters.LINEAR_SLIDE_FLOAT;
+                return false;
+            }
+        }
+
+        public Action liftFloat() {
+            return new LiftFloat();
+        }
+
+        public class LiftBottom implements Action {
+            @Override
+            public boolean run(@NonNull TelemetryPacket packet) {
+                linearSlide1TargetPosition = parameters.LINEAR_SLIDE_ROCK_BOTTOM;
+                linearSlide2TargetPosition = parameters.LINEAR_SLIDE_ROCK_BOTTOM;
+                return false;
+            }
+        }
+
+        public Action liftBottom() {
+            return new LiftBottom();
         }
 
         public class LiftDown implements Action {
@@ -270,15 +298,12 @@ public class Autonomous extends LinearOpMode {
                 packet.put("Linear Slide 1 Position", linearSlide1Position);
                 packet.put("Linear Slide 2 Position", linearSlide2Position);
                 packet.put("Linear Slide Target", parameters.LINEAR_SLIDE_START);
-                if (Math.abs(linearSlide1Position - parameters.LINEAR_SLIDE_START) < 5) {
+                if (Math.abs(linearSlide1Position - parameters.LINEAR_SLIDE_START) < 5 || Math.abs(linearSlide2Position - parameters.LINEAR_SLIDE_START) < 5) {
                     isLinearSlide1Initialized = true;
-                    linearSlide1.setPower(0);
+                    linearSlide1.setPower(0.01);
+                    linearSlide2.setPower(0.01);
                 }
-                if (Math.abs(linearSlide2Position - parameters.LINEAR_SLIDE_START) < 5) {
-                    isLinearSlide2Initialized = true;
-                    linearSlide2.setPower(0);
-                }
-                return !isLinearSlide2Initialized || !isLinearSlide1Initialized;
+                return !isLinearSlide1Initialized;
             }
         }
 

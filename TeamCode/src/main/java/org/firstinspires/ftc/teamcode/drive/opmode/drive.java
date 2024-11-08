@@ -5,6 +5,7 @@ import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.Servo;
@@ -78,7 +79,7 @@ public class drive extends LinearOpMode {
         linearSlide2.setDirection(DcMotorSimple.Direction.REVERSE);
 
         // Initialize twist motor
-        DcMotor twist = hardwareMap.get(DcMotor.class, "twist");
+        DcMotorEx twist = hardwareMap.get(DcMotorEx.class, "twist");
         twist.setDirection(DcMotorSimple.Direction.REVERSE);
         twist.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         twist.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -246,14 +247,17 @@ public class drive extends LinearOpMode {
             }
 
             twist.setTargetPosition((int)targetTwistPosition);
-            twist.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            twist.setMode(DcMotorEx.RunMode.RUN_TO_POSITION);
+
             double error = (twist.getCurrentPosition() - targetTwistPosition);
-            error = error > 0 ? error : Math.abs(error*1.2);
+            error = error > 0 ? error : Math.abs(error*1.5);
+
+            error = Math.min(119, error);
 
             double twistPower = - (Math.cos(Math.PI * error/120)-1)/2;
 
 
-            twist.setPower(twistPower);
+            twist.setVelocity(twistPower*300);
 
             // Claw Servo
             if (gamepad2.b) {

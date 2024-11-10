@@ -42,6 +42,10 @@ public class Autonomous extends LinearOpMode {
         public static final Pose2d SAMPLE_NEUTRAL_RED_FAR = new Pose2d(-35, -24, Math.toRadians(180));
         public static final Pose2d SAMPLE_NEUTRAL_RED_MIDDLE = new Pose2d(-45, -24, Math.toRadians(180));
         public static final Pose2d SAMPLE_NEUTRAL_RED_CLOSE = new Pose2d(-55, -24, Math.toRadians(180));
+
+        public static final Pose2d ASCENT_BLUE = new Pose2d(25, 0, Math.toRadians(180));
+
+        public static final Pose2d ASCENT_RED = new Pose2d(-25, 0, Math.toRadians(-180));
     }
 
     MecanumDrive.Params parameters = new MecanumDrive.Params();
@@ -139,6 +143,15 @@ public class Autonomous extends LinearOpMode {
                     extension.extensionOut(),
                     claw.clawOpen(),
                     extension.extensionIn()
+            );
+        }
+
+        public Action bucketToAscent(TrajectoryActionBuilder bucketToAscent) {
+            return new SequentialAction(
+                    new ParallelAction(
+                            bucketToAscent.build(),
+                            lift.liftDown()
+                    )
             );
         }
     }
@@ -609,9 +622,9 @@ public class Autonomous extends LinearOpMode {
                 .setTangent(Math.toRadians(120))
                 .splineToLinearHeading(Positions.BUCKET_BLUE, Math.toRadians(45));
 
-        TrajectoryActionBuilder blueBucketToSubmersible = robot.drive.actionBuilder(Positions.BUCKET_BLUE)
+        TrajectoryActionBuilder blueBucketToAscent = robot.drive.actionBuilder(Positions.BUCKET_BLUE)
                 .setTangent(Math.toRadians(180))
-                .splineToLinearHeading(new Pose2d(26, 10, Math.toRadians(180)), Math.toRadians(270));
+                .splineToLinearHeading(Positions.ASCENT_BLUE, Math.toRadians(270));
 
         // TODO: Correctly invert the rest of these trajectories
         TrajectoryActionBuilder redInitToBucket = robot.drive.actionBuilder(initialPose)
@@ -650,9 +663,10 @@ public class Autonomous extends LinearOpMode {
                 .splineToLinearHeading(Positions.SAMPLE_RED_CLOSE, 0);
         TrajectoryActionBuilder redCloseRedBlockToBucket = robot.drive.actionBuilder(Positions.SAMPLE_NEUTRAL_RED_CLOSE)
                 .splineToLinearHeading(Positions.BUCKET_RED, 45);
-        TrajectoryActionBuilder redBucketToSubmersible = robot.drive.actionBuilder(Positions.BUCKET_RED)
+
+        TrajectoryActionBuilder redBucketToAscent = robot.drive.actionBuilder(Positions.BUCKET_BLUE)
                 .setTangent(Math.toRadians(180))
-                .splineToLinearHeading(new Pose2d(26, 10, Math.toRadians(180)), Math.toRadians(270));
+                .splineToLinearHeading(Positions.ASCENT_RED, Math.toRadians(270));
 
         // Initialization Actions
         Actions.runBlocking(robot.Init());
@@ -676,7 +690,8 @@ public class Autonomous extends LinearOpMode {
                         robot.bucketToSample(blueBucketToMiddleNeutralBlock),
                         robot.poseToBucket(blueMiddleNeutralBlockToBucket),
                         robot.bucketToSample(blueBucketToCloseNeutralBlock),
-                        robot.poseToBucket(blueCloseNeutralBlockToBucket)
+                        robot.poseToBucket(blueCloseNeutralBlockToBucket),
+                        robot.bucketToAscent(blueBucketToAscent)
                 );
                 break;
             case BLUE_DIVE:
@@ -687,7 +702,8 @@ public class Autonomous extends LinearOpMode {
                         robot.bucketToSample(blueBucketToMiddleBlueBlock),
                         robot.poseToBucket(blueMiddleBlueBlockToBucket),
                         robot.bucketToSample(blueBucketToCloseBlueBlock),
-                        robot.poseToBucket(blueCloseBlueBlockToBucket)
+                        robot.poseToBucket(blueCloseBlueBlockToBucket),
+                        robot.bucketToAscent(blueBucketToAscent)
                 );
                 break;
             case RED_BUCKET:
@@ -698,7 +714,8 @@ public class Autonomous extends LinearOpMode {
                         robot.bucketToSample(redBucketToMiddleNeutralBlock),
                         robot.poseToBucket(redMiddleNeutralBlockToBucket),
                         robot.bucketToSample(redBucketToCloseNeutralBlock),
-                        robot.poseToBucket(redCloseNeutralBlockToBucket)
+                        robot.poseToBucket(redCloseNeutralBlockToBucket),
+                        robot.bucketToAscent(redBucketToAscent)
                 );
                 break;
             case RED_DIVE:
@@ -709,7 +726,8 @@ public class Autonomous extends LinearOpMode {
                         robot.bucketToSample(redBucketToMiddleRedBlock),
                         robot.poseToBucket(redMiddleRedBlockToBucket),
                         robot.bucketToSample(redBucketToCloseRedBlock),
-                        robot.poseToBucket(redCloseRedBlockToBucket)
+                        robot.poseToBucket(redCloseRedBlockToBucket),
+                        robot.bucketToAscent(redBucketToAscent)
                 );
             default:
                 actionToExecute = robot.drive.actionBuilder(new Pose2d(0, 0, 0)).build();

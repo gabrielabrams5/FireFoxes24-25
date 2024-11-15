@@ -105,9 +105,9 @@ public final class MecanumDrive {
         public final int TWIST_LOW = 0;
         public final int TWIST_SPECIMEN = 75;
         public final int LINEAR_SLIDE_START = 150;
-        public final int LINEAR_SLIDE_ROCK_BOTTOM = 100;
-        public final int LINEAR_SLIDE_MIN = 200;
-        public final int LINEAR_SLIDE_FLOAT = 450;
+        public final int LINEAR_SLIDE_ROCK_BOTTOM = 150;
+        public final int LINEAR_SLIDE_MIN = 250;
+        public final int LINEAR_SLIDE_FLOAT = 500;
         public final int LINEAR_SLIDE_MAX = 3150;
     }
 

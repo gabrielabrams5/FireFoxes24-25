@@ -8,7 +8,6 @@ import com.acmerobotics.roadrunner.ParallelAction;
 import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.SequentialAction;
 import com.acmerobotics.roadrunner.SleepAction;
-import com.acmerobotics.roadrunner.Trajectory;
 import com.acmerobotics.roadrunner.TrajectoryActionBuilder;
 import com.acmerobotics.roadrunner.ftc.Actions;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
@@ -28,9 +27,9 @@ public class Autonomous extends LinearOpMode {
         public static final Pose2d BUCKET_BLUE = new Pose2d(48, -46, Math.toRadians(-45));
         public static final Pose2d BUCKET_RED = new Pose2d(-46, 48, Math.toRadians(225));
 
-        public static final Pose2d SAMPLE_NEUTRAL_BLUE_FAR = new Pose2d(35, -26, Math.toRadians(0));
-        public static final Pose2d SAMPLE_NEUTRAL_BLUE_MIDDLE = new Pose2d(45, -26, Math.toRadians(0));
-        public static final Pose2d SAMPLE_NEUTRAL_BLUE_CLOSE = new Pose2d(54, -26, Math.toRadians(0));
+        public static final Pose2d SAMPLE_NEUTRAL_BLUE_FAR = new Pose2d(36.5, -27.5, Math.toRadians(0));
+        public static final Pose2d SAMPLE_NEUTRAL_BLUE_MIDDLE = new Pose2d(46.75, -27.75, Math.toRadians(0));
+        public static final Pose2d SAMPLE_NEUTRAL_BLUE_CLOSE = new Pose2d(58.5, -27.5, Math.toRadians(0));
 
         public static final Pose2d SAMPLE_RED_FAR = new Pose2d(35, -24, Math.toRadians(0));
         public static final Pose2d SAMPLE_RED_MIDDLE = new Pose2d(45, -24, Math.toRadians(0));
@@ -105,12 +104,12 @@ public class Autonomous extends LinearOpMode {
                     extension.extensionOut(),
                     new SleepAction(1),
                     claw.clawOpen(),
+                    twist.twistUpUp(),
                     new SleepAction(1),
                     extension.extensionIn(),
                     new SleepAction(1)
             );
         }
-
 
         public Action bucketToSample(TrajectoryActionBuilder bucketToSample) {
             return new SequentialAction(
@@ -133,8 +132,8 @@ public class Autonomous extends LinearOpMode {
                     lift.liftBottom(),
                     new SleepAction(0.5),
                     claw.clawClose(),
-                    new SleepAction(1),
-                    lift.liftFloat(),
+                    new SleepAction(0.5),
+                    lift.resetEncoders(),
                     new ParallelAction(
                             twist.twistUp(),
                             extension.extensionIn()
@@ -253,20 +252,19 @@ public class Autonomous extends LinearOpMode {
 
                 if (linearSlide1Error > 50) {
                     linearSlide1.setPower(isAbove1 ? -0.8 : 0.8);
+//                    linearSlide2.setPower(isAbove1 ? -0.8 : 0.8);
                 }
-                else if (linearSlide1Error > 25) {
-                    linearSlide1.setPower(isAbove1 ? -0.2 : 0.2);
-                } else {
-                    linearSlide1.setPower(0);
+                else {
+                    double slide1Power = 0.5 * linearSlide1Error / 50;
+                    linearSlide1.setPower(isAbove1 ? -slide1Power*slide1Power : slide1Power*slide1Power);
+//                    linearSlide2.setPower(isAbove1 ? -slide1Power*slide1Power : slide1Power*slide1Power);
                 }
 
                 if (linearSlide2Error > 50) {
                     linearSlide2.setPower(isAbove2 ? -0.8 : 0.8);
-                }
-                else if (linearSlide2Error > 25) {
-                    linearSlide2.setPower(isAbove2 ? -0.2 : 0.2);
                 } else {
-                    linearSlide2.setPower(0);
+                    double slide2Power = 0.5 * linearSlide2Error / 50;
+                    linearSlide2.setPower(isAbove2 ? -slide2Power*slide2Power : slide2Power*slide2Power);
                 }
                 return true;
             }
@@ -278,7 +276,7 @@ public class Autonomous extends LinearOpMode {
 
         public class LiftUp implements Action {
 //            private boolean initialized = false;
-
+//
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
                 linearSlide1TargetPosition = parameters.LINEAR_SLIDE_MAX;
@@ -289,6 +287,23 @@ public class Autonomous extends LinearOpMode {
 
         public Action liftUp() {
             return new LiftUp();
+        }
+
+        public class ResetEncoders implements Action {
+            //            private boolean initialized = false;
+//
+            @Override
+            public boolean run(@NonNull TelemetryPacket packet) {
+                linearSlide1.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+                linearSlide2.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+                linearSlide1.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+                linearSlide2.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+                return false;
+            }
+        }
+
+        public Action resetEncoders() {
+            return new ResetEncoders();
         }
 
         public class LiftFloat implements Action {
@@ -369,8 +384,8 @@ public class Autonomous extends LinearOpMode {
                 packet.put("Linear Slide Target", parameters.LINEAR_SLIDE_START);
                 if (Math.abs(linearSlide1Position - parameters.LINEAR_SLIDE_START) < 5 || Math.abs(linearSlide2Position - parameters.LINEAR_SLIDE_START) < 5) {
                     isLinearSlide1Initialized = true;
-                    linearSlide1.setPower(0.01);
-                    linearSlide2.setPower(0.01);
+                    linearSlide1.setPower(0);
+                    linearSlide2.setPower(0);
                 }
                 return !isLinearSlide1Initialized;
             }
@@ -455,10 +470,10 @@ public class Autonomous extends LinearOpMode {
                 packet.put("Twist Target Position", targetPosition);
                 double error = (twist.getCurrentPosition() - targetPosition);
                 if (error > 0){
-                    twist.setVelocity(300*(Math.cos(Math.PI * error/120)-1)/2);
+                    twist.setVelocity(150*(Math.cos(Math.PI * error/120)-1)/2);
                 } else{
                     error = 1.2*Math.abs(error);
-                    twist.setVelocity(300*-(Math.cos(Math.PI * error/120)-1)/2);
+                    twist.setVelocity(450*-(Math.cos(Math.PI * error/120)-1)/2);
                 }
                 return true;
             }
@@ -504,6 +519,20 @@ public class Autonomous extends LinearOpMode {
 
         public Action twistUp() {
             return new TwistUp();
+        }
+
+        public class TwistUpUp implements Action {
+            private boolean initialized = false;
+
+            @Override
+            public boolean run(@NonNull TelemetryPacket packet) {
+                targetPosition = parameters.TWIST_UPUP;
+                return false;
+            }
+        }
+
+        public Action twistUpUp() {
+            return new TwistUpUp();
         }
 
         public class TwistDown implements Action {
@@ -638,8 +667,8 @@ public class Autonomous extends LinearOpMode {
                 .setTangent(Math.toRadians(0))
                 .splineToLinearHeading(Positions.BUCKET_BLUE, Math.toRadians(315));
         TrajectoryActionBuilder blueBucketToFarNeutralBlock = robot.drive.actionBuilder(Positions.BUCKET_BLUE)
-                .setTangent(Math.toRadians(-200))
-                .splineToLinearHeading(Positions.SAMPLE_NEUTRAL_BLUE_FAR, Math.toRadians(-100));
+                .setTangent(Math.toRadians(180))
+                .splineToLinearHeading(Positions.SAMPLE_NEUTRAL_BLUE_FAR, Math.toRadians(-50));
         TrajectoryActionBuilder blueFarNeutralBlockToBucket = robot.drive.actionBuilder(Positions.SAMPLE_NEUTRAL_BLUE_FAR)
                 .setTangent(Math.toRadians(-90))
                 .splineToLinearHeading(Positions.BUCKET_BLUE, Math.toRadians(45));

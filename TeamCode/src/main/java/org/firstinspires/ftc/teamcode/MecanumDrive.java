@@ -92,17 +92,25 @@ public final class MecanumDrive {
         public double headingVelGain = 1.0; // shared with turn
 
         public final double CLAW_START = 0.9;
-        public final double CLAW_OPEN = 0.75;
+        public final double AUTON_CLAW_INIT = 0.45;
+        public final double CLAW_OPEN = 0;
         public final double CLAW_CLOSE = 0.45;
-        public final double EXTENSION_START = 0;
+        public final double EXTENSION_START = 0.1;
         public final double EXTENSION_OUT = 1.0;
-        public final double EXTENSION_IN = 0;
-        public final int TWIST_START = -30;
-        public final int TWIST_HIGH = 80;
+        public final double EXTENSION_IN = 0.1;
+        public final double EXTENSION_MIDDLE = 0.4;
+        public final double EXTENSION_BUCKET = 0.6;
+        public final int TWIST_START = -10;
+        public final int TWIST_HIGH = 135;
+        public final int TWIST_MEDIUM = 130;
+        public final int TWIST_UPUP = 150;
         public final int TWIST_LOW = 0;
-        public final int LINEAR_SLIDE_START = 50;
+        public final int TWIST_SPECIMEN = 75;
+        public final int LINEAR_SLIDE_START = 150;
+        public final int LINEAR_SLIDE_ROCK_BOTTOM = 100;
         public final int LINEAR_SLIDE_MIN = 200;
-        public final int LINEAR_SLIDE_MAX = 3350;
+        public final int LINEAR_SLIDE_FLOAT = 350;
+        public final int LINEAR_SLIDE_MAX = 3150;
     }
 
     public static Params PARAMS = new Params();
@@ -222,7 +230,11 @@ public final class MecanumDrive {
     }
 
     public MecanumDrive(HardwareMap hardwareMap, Pose2d pose) {
-        this.pose = pose;
+        if (pose != null){
+            this.pose = new Pose2d(pose.position.x, -pose.position.y, pose.heading.toDouble());
+        } else{
+            this.pose = pose;
+        }
 
         LynxFirmware.throwIfModulesAreOutdated(hardwareMap);
 
@@ -235,7 +247,7 @@ public final class MecanumDrive {
         leftFront = hardwareMap.get(DcMotorEx.class, "lfMtr");
         leftBack = hardwareMap.get(DcMotorEx.class, "lbMtr");
         rightBack = hardwareMap.get(DcMotorEx.class, "rbMtr");
-        rightFront = hardwareMap.get(DcMotorEx.class, "pr");
+        rightFront = hardwareMap.get(DcMotorEx.class, "rfMtr");
 
         leftFront.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         leftBack.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);

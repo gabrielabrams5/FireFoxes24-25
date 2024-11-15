@@ -93,7 +93,7 @@ public final class MecanumDrive {
 
         public final double CLAW_START = 0.9;
         public final double AUTON_CLAW_INIT = 0.45;
-        public final double CLAW_OPEN = 0.75;
+        public final double CLAW_OPEN = 0;
         public final double CLAW_CLOSE = 0.45;
         public final double EXTENSION_START = 0.1;
         public final double EXTENSION_OUT = 1.0;

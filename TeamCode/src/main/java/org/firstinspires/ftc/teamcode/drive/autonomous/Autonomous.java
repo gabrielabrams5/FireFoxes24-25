@@ -21,7 +21,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 import org.firstinspires.ftc.teamcode.MecanumDrive;
 
 @Config
-@com.qualcomm.robotcore.eventloop.opmode.Autonomous(name = "TEST_AUTONOMOUS", group = "Autonomous")
+@com.qualcomm.robotcore.eventloop.opmode.Autonomous(name = "BLUE_AUTONOMOUS", group = "Autonomous")
 public class Autonomous extends LinearOpMode {
     public static class Positions {
         public static final Pose2d BUCKET_BLUE = new Pose2d(49, -47, Math.toRadians(-45));
@@ -392,7 +392,7 @@ public class Autonomous extends LinearOpMode {
                 packet.put("Twist Target Position", targetPosition);
                 double error = (twist.getCurrentPosition() - targetPosition);
                 if (error > 0){
-                    twist.setVelocity(150*(Math.cos(Math.PI * error/120)-1)/2);
+                    twist.setVelocity(450*(Math.cos(Math.PI * error/120)-1)/2);
                 } else{
                     error = 1.2*Math.abs(error);
                     twist.setVelocity(450*-(Math.cos(Math.PI * error/120)-1)/2);
@@ -464,7 +464,7 @@ public class Autonomous extends LinearOpMode {
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
                 targetPosition = parameters.TWIST_LOW;
-                while(iterations < 8) {
+                while(iterations < 20) {
                     twist.setPower(-1);
                     iterations++;
                     return true;
@@ -583,7 +583,7 @@ public class Autonomous extends LinearOpMode {
 
     @Override
     public void runOpMode() {
-        StartingPosition startPos = StartingPosition.RED_BUCKET;
+        StartingPosition startPos = StartingPosition.BLUE_BUCKET;
 
         Pose2d initialPose = startPos.getStartPos();
         Robot robot = new Robot(
@@ -626,8 +626,8 @@ public class Autonomous extends LinearOpMode {
                 .setTangent(Math.toRadians(-120))
                 .splineToLinearHeading(Positions.BUCKET_BLUE, Math.toRadians(45));
         TrajectoryActionBuilder blueBucketToSubmersible = robot.drive.actionBuilder(Positions.BUCKET_BLUE)
-                .setTangent(Math.toRadians(90))
-                .splineToLinearHeading(new Pose2d(26, -15, Math.toRadians(0)), Math.toRadians(200));
+                .setTangent(Math.toRadians(80))
+                .splineToLinearHeading(new Pose2d(26, -10, Math.toRadians(0)), Math.toRadians(200));
 
 
         TrajectoryActionBuilder redInitToBucket = robot.drive.actionBuilder(initialPose)

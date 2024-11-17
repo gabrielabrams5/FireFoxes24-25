@@ -110,6 +110,7 @@ public class drive extends LinearOpMode {
         int linearSlide2Target = parameters.LINEAR_SLIDE_START;
 
         double targetTwistPosition = 0;
+        double previousRightJoystick = 0;
         // Initialize robot position variables
         double robotAngle = 0;
         YawPitchRollAngles robotOrientation;
@@ -261,13 +262,22 @@ public class drive extends LinearOpMode {
             twist.setMode(DcMotorEx.RunMode.RUN_TO_POSITION);
 
             double error = (twist.getCurrentPosition() - targetTwistPosition);
-            error = error > 0 ? error : Math.abs(error*1.3);
 
-            error = Math.min(119, error);
+            if (error > 0){
+                twist.setVelocity(150*(Math.cos(Math.PI * error/120)-1)/2);
+            } else{
+                error = 1.2*Math.abs(error);
+                twist.setVelocity(450*-(Math.cos(Math.PI * error/120)-1)/2);
+            }
+//            error = error > 0 ? error : Math.abs(error*1.3);
+//
+//            error = Math.min(119, error);
+//
+//            double twistPower = - (Math.cos(Math.PI * error/120)-1)/2;
 
-            double twistPower = - (Math.cos(Math.PI * error/120)-1)/2;
+//            twist.setVelocity(twistPower*350);
 
-            twist.setVelocity(twistPower*300);
+            previousRightJoystick = gamepad2.right_stick_y;
 
             // Claw Servo
             if (gamepad2.b) {
@@ -286,7 +296,8 @@ public class drive extends LinearOpMode {
                 extension.setPosition(parameters.EXTENSION_MIDDLE);
                 linearSlide1Target = parameters.LINEAR_SLIDE_MAX;
                 linearSlide2Target = parameters.LINEAR_SLIDE_MAX;
-                targetTwistPosition = parameters.TWIST_MEDIUM;
+                targetTwistPosition = parameters.TWIST_HIGH;
+                twist.setPower(1);
             }
 
             // In+Down Macro
@@ -295,6 +306,7 @@ public class drive extends LinearOpMode {
                 linearSlide1Target = parameters.LINEAR_SLIDE_FLOAT;
                 linearSlide2Target = parameters.LINEAR_SLIDE_FLOAT;
                 targetTwistPosition = parameters.TWIST_LOW;
+                twist.setPower(1);
             }
 
             // Send calculated power to wheels, convert power to rpm
@@ -314,7 +326,7 @@ public class drive extends LinearOpMode {
             telemetry.addData("Claw", "Position: " + claw.getPosition());
             telemetry.addData("Twist", "Position: " + twist.getCurrentPosition());
             telemetry.addData("Twist", "Target Position: " + targetTwistPosition);
-            telemetry.addData("Twist", "Twist Power: " + twistPower);
+//            telemetry.addData("Twist", "Twist Power: " + twistPower);
             telemetry.addData("Linear Slides", "LS1 Position: " + linearSlide1.getCurrentPosition() + "LS2 Position: " + linearSlide2.getCurrentPosition());
             telemetry.addData("Linear Slides", "LS2 Target: " + linearSlide1Target + "LS2 Target: " + linearSlide2Target);
             telemetry.addData("Front left/Right", "%4.2f, %4.2f", leftFrontPower, rightFrontPower);

@@ -716,15 +716,21 @@ public class Autonomous extends LinearOpMode {
                 .setTangent(Math.toRadians(90))
                 .splineToLinearHeading(Positions.SAMPLE_BLUE_FAR, Math.toRadians(100));
 
-//        TrajectoryActionBuilder blueFarBlueBlockToDive = robot.drive.actionBuilder(Positions.SAMPLE_BLUE_FAR)
-//                .setTangent(Math.toRadians(90))
-//                .splineToLinearHeading(Positions.ASCENT_BLUE, );
+        TrajectoryActionBuilder blueFarBlueBlockToDive = robot.drive.actionBuilder(Positions.SAMPLE_BLUE_FAR)
+                .setTangent(Math.toRadians(180))
+                .splineToLinearHeading(Positions.DIVE_BLUE, Math.toRadians(-90));
 
-//        TrajectoryActionBuilder blueDiveToMiddleBlueBlock = robot.drive.actionBuilder(Positions.SAMPLE_BLUE_FAR)
-//
-//        TrajectoryActionBuilder blueMiddleBlueBlockToDive = robot.drive.actionBuilder(Positions.SAMPLE_BLUE_MIDDLE)
-//
-//        TrajectoryActionBuilder blueDiveToAscent = robot.drive.actionBuilder(Positions.DIVE_BLUE)
+        TrajectoryActionBuilder blueDiveToMiddleBlueBlock = robot.drive.actionBuilder(Positions.DIVE_BLUE)
+                .setTangent(-90)
+                .splineToLinearHeading(Positions.SAMPLE_BLUE_MIDDLE, Math.toRadians(180));
+
+        TrajectoryActionBuilder blueMiddleBlueBlockToDive = robot.drive.actionBuilder(Positions.SAMPLE_BLUE_MIDDLE)
+                .setTangent(Math.toRadians(180))
+                .splineToLinearHeading(Positions.DIVE_BLUE, Math.toRadians(-90));
+
+        TrajectoryActionBuilder blueDiveToAscent = robot.drive.actionBuilder(Positions.DIVE_BLUE)
+                .setTangent(-90)
+                .splineToLinearHeading(Positions.SAMPLE_BLUE_MIDDLE, Math.toRadians(90));
 
         /*
         Invert y: done
@@ -800,20 +806,20 @@ public class Autonomous extends LinearOpMode {
                 break;
             case BLUE_DIVE:
                 actionToExecute = new SequentialAction(
-////                        robot.poseToBucket(blueInitToBucket),
-////                        robot.bucketToSample(blueBucketToFarBlueBlock),
-////                        robot.poseToBucket(blueFarBlueBlockToBucket),
-////                        robot.bucketToSample(blueBucketToMiddleBlueBlock),
-////                        robot.poseToBucket(blueMiddleBlueBlockToBucket),
-////                        robot.bucketToSample(blueBucketToCloseBlueBlock),
-////                        robot.poseToBucket(blueCloseBlueBlockToBucket),
-////                        robot.bucketToAscent(blueBucketToAscent)
-//                        robot.poseToAscent(blueInitToAscent),
-//                        robot.ascentToSample(blueAscentToFarBlueBlock),
-//                        robot.poseToDive(blueFarBlueBlockToDive),
-//                        robot.diveToSample(blueDiveToMiddleBlueBlock),
-//                        robot.poseToDive(blueMiddleBlueBlockToDive),
-//                        robot.poseToAscent(blueDiveToAscent)
+//                        robot.poseToBucket(blueInitToBucket),
+//                        robot.bucketToSample(blueBucketToFarBlueBlock),
+//                        robot.poseToBucket(blueFarBlueBlockToBucket),
+//                        robot.bucketToSample(blueBucketToMiddleBlueBlock),
+//                        robot.poseToBucket(blueMiddleBlueBlockToBucket),
+//                        robot.bucketToSample(blueBucketToCloseBlueBlock),
+//                        robot.poseToBucket(blueCloseBlueBlockToBucket),
+//                        robot.bucketToAscent(blueBucketToAscent)
+                        robot.poseToAscent(blueInitToAscent),
+                        robot.ascentToSample(blueAscentToFarBlueBlock),
+                        robot.poseToDive(blueFarBlueBlockToDive),
+                        robot.diveToSample(blueDiveToMiddleBlueBlock),
+                        robot.poseToDive(blueMiddleBlueBlockToDive),
+                        robot.poseToAscent(blueDiveToAscent)
                 );
                 break;
             case RED_BUCKET:

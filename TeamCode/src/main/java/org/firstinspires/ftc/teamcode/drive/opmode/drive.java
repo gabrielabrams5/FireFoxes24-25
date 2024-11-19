@@ -254,7 +254,7 @@ public class drive extends LinearOpMode {
 
             error = Math.min(119, error);
 
-            double twistPower = - (Math.cos(Math.PI * error/120)-1)/2;
+            double twistPower = - (Math.cos(Math.PI * error/120)-1)/2;`
 
 
             twist.setVelocity(twistPower*300);

@@ -92,21 +92,24 @@ public final class MecanumDrive {
         public double headingVelGain = 1.0; // shared with turn
 
         public final double CLAW_START = 0.9;
-        public final double AUTON_CLAW_INIT = 0.45;
-        public final double CLAW_OPEN = 0.75;
-        public final double CLAW_CLOSE = 0.45;
-        public final double EXTENSION_START = 0.1;
-        public final double EXTENSION_OUT = 1.0;
-        public final double EXTENSION_IN = 0.1;
+        public final double AUTON_CLAW_INIT = 0.8;
+        public final double CLAW_OPEN = 0.25;
+        public final double CLAW_CLOSE = 0.95;
+        public final double EXTENSION_START = 0.2;
+        public final double EXTENSION_OUT = 0.8;
+        public final double EXTENSION_IN = 0.2;
         public final double EXTENSION_MIDDLE = 0.5;
+        public final double EXTENSION_BUCKET = 0.6;
         public final int TWIST_START = -10;
-        public final int TWIST_HIGH = 125;
+        public final int TWIST_HIGH = 123;
+        public final int TWIST_SPECIMEN = 69;
+        public final int TWIST_UPUP = 135;
         public final int TWIST_LOW = 0;
         public final int LINEAR_SLIDE_START = 150;
-        public final int LINEAR_SLIDE_ROCK_BOTTOM = 0;
+        public final int LINEAR_SLIDE_ROCK_BOTTOM = 100;
         public final int LINEAR_SLIDE_MIN = 200;
-        public final int LINEAR_SLIDE_FLOAT = 250;
-        public final int LINEAR_SLIDE_MAX = 3100;
+        public final int LINEAR_SLIDE_FLOAT = 350;
+        public final int LINEAR_SLIDE_MAX = 3150;
     }
 
     public static Params PARAMS = new Params();

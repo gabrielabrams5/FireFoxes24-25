@@ -27,6 +27,7 @@ public class drive extends LinearOpMode {
      *   CLOSE  - Y Button
      * Twist:
      *   HIGH   - Right dPad
+     *   MIDDLE - Right Trigger + Left dPad
      *   LOW    - Left dPad
      *   ADJUST - Right Stick Y
      * Linear Slide:
@@ -110,6 +111,7 @@ public class drive extends LinearOpMode {
         int linearSlide2Target = parameters.LINEAR_SLIDE_START;
 
         double targetTwistPosition = 0;
+        double previousRightJoystick = 0;
         // Initialize robot position variables
         double robotAngle = 0;
         YawPitchRollAngles robotOrientation;
@@ -129,8 +131,6 @@ public class drive extends LinearOpMode {
         twist.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         twist.setPower((1/20)*Math.sqrt(Math.abs(twist.getCurrentPosition() - targetTwistPosition)));
 
-
-
         // Robot is ready to start! Display message to screen
         telemetry.addData("Status", "Initialized");
         telemetry.update();
@@ -143,7 +143,9 @@ public class drive extends LinearOpMode {
         while (opModeIsActive()) {
 
             // Get Pose
+            drive.updatePoseEstimate();
             Pose2d myPose = drive.pose;
+
 
             // Get IMU data
             robotOrientation = imu.getRobotYawPitchRollAngles();
@@ -155,13 +157,24 @@ public class drive extends LinearOpMode {
             double Pitch = robotOrientation.getPitch(AngleUnit.DEGREES);
             double Roll = robotOrientation.getRoll(AngleUnit.DEGREES);
 
-            if (myPose != null) robotAngle = myPose.heading.real; // TODO: Change to right one
+            if (myPose != null) robotAngle = myPose.heading.toDouble(); // TODO: Change to right one
 
             // POV Mode uses left joystick to go forward & strafe, and right joystick to rotate.
             double axial_target = gamepad1.left_stick_x;  // Note: pushing stick forward gives negative value
             double lateral_target = -gamepad1.left_stick_y;
-            double axial_real = lateral_target * Math.cos(robotAngle) + axial_target * Math.sin(robotAngle);
-            double lateral_real = lateral_target * -Math.sin(robotAngle) + axial_target * Math.cos(robotAngle);
+
+            double theta = gamepad1.left_bumper ? -robotAngle : 0;
+            double cosine = Math.cos(theta);
+            double sine = Math.sin(theta);
+
+            double targetx = axial_target * cosine - lateral_target * sine;
+            double targety = axial_target * sine + lateral_target * cosine;
+
+            double lateral_real = targetx;
+            double axial_real = targety;
+
+//            double axial_real = lateral_target * Math.cos(robotAngle) + axial_target * Math.sin(robotAngle);
+//            double lateral_real = lateral_target * -Math.sin(robotAngle) + axial_target * Math.cos(robotAngle);
             double yaw = gamepad1.right_stick_x;
 
             double right_trigger = 1 + gamepad1.right_trigger;
@@ -214,8 +227,8 @@ public class drive extends LinearOpMode {
             linearSlide2.setTargetPosition(linearSlide2Target);
             linearSlide1.setMode(DcMotor.RunMode.RUN_TO_POSITION);
             linearSlide2.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-            linearSlide1Target = Math.min(linearSlide1Target, parameters.LINEAR_SLIDE_MAX);
-            linearSlide2Target = Math.min(linearSlide2Target, parameters.LINEAR_SLIDE_MAX);
+            linearSlide1Target = Math.min(linearSlide1Target, parameters.LINEAR_SLIDE_MAX + 300);
+            linearSlide2Target = Math.min(linearSlide2Target, parameters.LINEAR_SLIDE_MAX + 300);
 
             if (Math.abs(linearSlide1.getCurrentPosition() - linearSlide1Target) >= 5){
                 linearSlide1.setPower(0.8);
@@ -240,7 +253,7 @@ public class drive extends LinearOpMode {
             // Twist Servo
             if (gamepad2.dpad_right) {
                 targetTwistPosition = parameters.TWIST_LOW;
-            } else if (gamepad2.dpad_left) {
+            } else if (gamepad2.dpad_left && gamepad2.right_trigger < 0.5) {
                 targetTwistPosition = parameters.TWIST_HIGH;
             } else if (gamepad2.right_stick_y != 0){
                 targetTwistPosition -= (gamepad2.right_stick_y);
@@ -250,14 +263,22 @@ public class drive extends LinearOpMode {
             twist.setMode(DcMotorEx.RunMode.RUN_TO_POSITION);
 
             double error = (twist.getCurrentPosition() - targetTwistPosition);
-            error = error > 0 ? error : Math.abs(error*1.5);
 
-            error = Math.min(119, error);
+            if (error > 0){
+                twist.setVelocity(150*(Math.cos(Math.PI * error/120)-1)/2);
+            } else{
+                error = 1.2*Math.abs(error);
+                twist.setVelocity(450*-(Math.cos(Math.PI * error/120)-1)/2);
+            }
+//            error = error > 0 ? error : Math.abs(error*1.3);
+//
+//            error = Math.min(119, error);
+//
+//            double twistPower = - (Math.cos(Math.PI * error/120)-1)/2;
 
-            double twistPower = - (Math.cos(Math.PI * error/120)-1)/2;`
+//            twist.setVelocity(twistPower*350);
 
-
-            twist.setVelocity(twistPower*300);
+//            previousRightJoystick = gamepad2.right_stick_y;
 
             // Claw Servo
             if (gamepad2.b) {
@@ -266,12 +287,18 @@ public class drive extends LinearOpMode {
                 claw.setPosition(parameters.CLAW_CLOSE);
             }
 
+            if (gamepad2.a){
+                linearSlide1.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+                linearSlide2.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            }
+
             // Out+Up Macro
             if (gamepad2.right_trigger > 0.5 && gamepad2.dpad_up) {
-                extension.setPosition(parameters.EXTENSION_OUT);
+                extension.setPosition(parameters.EXTENSION_MIDDLE);
                 linearSlide1Target = parameters.LINEAR_SLIDE_MAX;
                 linearSlide2Target = parameters.LINEAR_SLIDE_MAX;
                 targetTwistPosition = parameters.TWIST_HIGH;
+                twist.setPower(1);
             }
 
             // In+Down Macro
@@ -280,6 +307,13 @@ public class drive extends LinearOpMode {
                 linearSlide1Target = parameters.LINEAR_SLIDE_FLOAT;
                 linearSlide2Target = parameters.LINEAR_SLIDE_FLOAT;
                 targetTwistPosition = parameters.TWIST_LOW;
+                twist.setPower(1);
+            }
+
+            // Specimen Height for Twist
+            if (gamepad2.right_trigger > 0.5 && gamepad2.dpad_left) {
+                extension.setPosition(parameters.EXTENSION_IN);
+                targetTwistPosition = parameters.TWIST_SPECIMEN;
             }
 
             // Send calculated power to wheels, convert power to rpm
@@ -292,14 +326,14 @@ public class drive extends LinearOpMode {
             telemetry.addData("Status", "Run Time: " + runtime);
             if (myPose != null) {
                 telemetry.addData("Position", "x: " + myPose.position.x + "y: " + myPose.position.y);
-                telemetry.addData("Heading", "Angle: " + myPose.heading.real);
+                telemetry.addData("Heading", "Angle: " + myPose.heading.toDouble());
             }
             telemetry.addData("Vert slides", "Position: " + linearSlide1.getCurrentPosition());
             telemetry.addData("Extension", "Position: " + extension.getPosition());
             telemetry.addData("Claw", "Position: " + claw.getPosition());
             telemetry.addData("Twist", "Position: " + twist.getCurrentPosition());
             telemetry.addData("Twist", "Target Position: " + targetTwistPosition);
-            telemetry.addData("Twist", "Twist Power: " + twistPower);
+//            telemetry.addData("Twist", "Twist Power: " + twistPower);
             telemetry.addData("Linear Slides", "LS1 Position: " + linearSlide1.getCurrentPosition() + "LS2 Position: " + linearSlide2.getCurrentPosition());
             telemetry.addData("Linear Slides", "LS2 Target: " + linearSlide1Target + "LS2 Target: " + linearSlide2Target);
             telemetry.addData("Front left/Right", "%4.2f, %4.2f", leftFrontPower, rightFrontPower);

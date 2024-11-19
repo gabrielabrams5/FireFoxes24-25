@@ -102,7 +102,7 @@ public final class MecanumDrive {
         public final double EXTENSION_BUCKET = 0.6;
         public final int TWIST_START = -10;
         public final int TWIST_HIGH = 123;
-        public final int TWIST_MEDIUM = 110;
+        public final int TWIST_SPECIMEN = 69;
         public final int TWIST_UPUP = 135;
         public final int TWIST_LOW = 0;
         public final int LINEAR_SLIDE_START = 150;

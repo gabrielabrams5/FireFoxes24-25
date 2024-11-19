@@ -27,6 +27,7 @@ public class drive extends LinearOpMode {
      *   CLOSE  - Y Button
      * Twist:
      *   HIGH   - Right dPad
+     *   MIDDLE - Right Trigger + Left dPad
      *   LOW    - Left dPad
      *   ADJUST - Right Stick Y
      * Linear Slide:
@@ -252,7 +253,7 @@ public class drive extends LinearOpMode {
             // Twist Servo
             if (gamepad2.dpad_right) {
                 targetTwistPosition = parameters.TWIST_LOW;
-            } else if (gamepad2.dpad_left) {
+            } else if (gamepad2.dpad_left && gamepad2.right_trigger < 0.5) {
                 targetTwistPosition = parameters.TWIST_HIGH;
             } else if (gamepad2.right_stick_y != 0){
                 targetTwistPosition -= (gamepad2.right_stick_y);
@@ -277,7 +278,7 @@ public class drive extends LinearOpMode {
 
 //            twist.setVelocity(twistPower*350);
 
-            previousRightJoystick = gamepad2.right_stick_y;
+//            previousRightJoystick = gamepad2.right_stick_y;
 
             // Claw Servo
             if (gamepad2.b) {
@@ -307,6 +308,12 @@ public class drive extends LinearOpMode {
                 linearSlide2Target = parameters.LINEAR_SLIDE_FLOAT;
                 targetTwistPosition = parameters.TWIST_LOW;
                 twist.setPower(1);
+            }
+
+            // Specimen Height for Twist
+            if (gamepad2.right_trigger > 0.5 && gamepad2.dpad_left) {
+                extension.setPosition(parameters.EXTENSION_IN);
+                targetTwistPosition = parameters.TWIST_SPECIMEN;
             }
 
             // Send calculated power to wheels, convert power to rpm

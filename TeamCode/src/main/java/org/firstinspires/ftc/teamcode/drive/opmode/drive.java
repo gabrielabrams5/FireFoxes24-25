@@ -117,19 +117,19 @@ public class drive extends LinearOpMode {
         YawPitchRollAngles robotOrientation;
 
         // Set linear slides to start positions
-        linearSlide1.setTargetPosition(linearSlide1Target);
-        linearSlide2.setTargetPosition(linearSlide2Target);
-        linearSlide1.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        linearSlide2.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        linearSlide1.setPower(0.5);
-        linearSlide2.setPower(0.5);
+//        linearSlide1.setTargetPosition(linearSlide1Target);
+//        linearSlide2.setTargetPosition(linearSlide2Target);
+//        linearSlide1.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+//        linearSlide2.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+//        linearSlide1.setPower(0.5);
+//        linearSlide2.setPower(0.5);
         // Set servos to start positions
-        claw.setPosition(parameters.CLAW_START);
-        extension.setPosition(parameters.EXTENSION_START);
+//        claw.setPosition(parameters.CLAW_START);
+//        extension.setPosition(parameters.EXTENSION_START);
 
-        twist.setTargetPosition(parameters.TWIST_START);
-        twist.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        twist.setPower((1/20)*Math.sqrt(Math.abs(twist.getCurrentPosition() - targetTwistPosition)));
+//        twist.setTargetPosition(parameters.TWIST_START);
+//        twist.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+//        twist.setPower((1/20)*Math.sqrt(Math.abs(twist.getCurrentPosition() - targetTwistPosition)));
 
         // Robot is ready to start! Display message to screen
         telemetry.addData("Status", "Initialized");

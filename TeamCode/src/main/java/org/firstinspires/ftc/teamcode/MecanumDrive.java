@@ -109,6 +109,8 @@ public final class MecanumDrive {
         public final int LINEAR_SLIDE_ROCK_BOTTOM = 100;
         public final int LINEAR_SLIDE_MIN = 200;
         public final int LINEAR_SLIDE_FLOAT = 350;
+        public final int LINEAR_SLIDE_BAR_DOWN = 1700;
+        public final int LINEAR_SLIDE_BAR_UP = 2250;
         public final int LINEAR_SLIDE_MAX = 3150;
     }
 

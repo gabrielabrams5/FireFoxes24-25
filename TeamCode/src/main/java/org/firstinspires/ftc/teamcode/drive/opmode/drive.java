@@ -35,8 +35,10 @@ public class drive extends LinearOpMode {
      *   DOWN   - Down dPad
      *   ADJUST - Left Stick Y
      * Macros:
-     *   OUT+HIGH+UP     - Right Trigger + Up dPad
+     *   OUT+HIGH+UP     - Left Trigger + Up dPad
      *   IN+LOW+DOWN     - Left Trigger + Down dPad
+     *   OUT+HIGH+UP (Specimen)     - Right Trigger + Up dPad
+     *   IN+LOW+DOWN (Specimen)     - Right Trigger + Down dPad
      */
 
     @Override
@@ -130,6 +132,8 @@ public class drive extends LinearOpMode {
 //        twist.setTargetPosition(parameters.TWIST_START);
 //        twist.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 //        twist.setPower((1/20)*Math.sqrt(Math.abs(twist.getCurrentPosition() - targetTwistPosition)));
+
+        double previousRightJoystick = 0;
 
         // Robot is ready to start! Display message to screen
         telemetry.addData("Status", "Initialized");
@@ -251,12 +255,12 @@ public class drive extends LinearOpMode {
             }
 
             // Twist Servo
-            if (gamepad2.dpad_right) {
+            if (gamepad2.dpad_right && !(gamepad2.right_trigger > 0.5)) {
                 targetTwistPosition = parameters.TWIST_LOW;
             } else if (gamepad2.dpad_left && gamepad2.right_trigger < 0.5) {
                 targetTwistPosition = parameters.TWIST_HIGH;
-            } else if (gamepad2.right_stick_y != 0){
-                targetTwistPosition -= (gamepad2.right_stick_y);
+            } else if (gamepad2.right_stick_y != 0 && !(gamepad2.right_trigger > 0.5)){
+                targetTwistPosition -= (gamepad2.right_stick_y*2);
             }
 
             twist.setTargetPosition((int)targetTwistPosition);
@@ -301,7 +305,7 @@ public class drive extends LinearOpMode {
                 twist.setPower(1);
             }
 
-            // In+Down Macro
+            // Bucket In+Down Macro
             if (gamepad2.left_trigger > 0.5 && gamepad2.dpad_down) {
                 extension.setPosition(parameters.EXTENSION_IN);
                 linearSlide1Target = parameters.LINEAR_SLIDE_FLOAT;
@@ -312,6 +316,17 @@ public class drive extends LinearOpMode {
 
             // Specimen Height for Twist
             if (gamepad2.right_trigger > 0.5 && gamepad2.dpad_left) {
+                extension.setPosition(parameters.EXTENSION_IN);
+                targetTwistPosition = parameters.TWIST_SPECIMEN;
+            }
+
+            // Specimen Out+Up Macro
+            if (gamepad2.right_trigger > 0.5 && gamepad2.dpad_right) {
+                targetTwistPosition = parameters.TWIST_SPECIMEN;
+            }
+
+            // Specimen In+Down Macro
+            if (gamepad2.right_trigger > 0.5 && gamepad2.dpad_up) {
                 extension.setPosition(parameters.EXTENSION_IN);
                 targetTwistPosition = parameters.TWIST_SPECIMEN;
             }

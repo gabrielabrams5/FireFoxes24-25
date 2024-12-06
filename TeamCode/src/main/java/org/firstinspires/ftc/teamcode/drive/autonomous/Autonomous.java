@@ -123,6 +123,7 @@ public class Autonomous extends LinearOpMode {
 
         public Action bucketToSample(TrajectoryActionBuilder bucketToSample) {
             return new SequentialAction(
+                    claw.clawClose(),
                     new ParallelAction(
                             bucketToSample.build(),
                             extension.extensionIn(),

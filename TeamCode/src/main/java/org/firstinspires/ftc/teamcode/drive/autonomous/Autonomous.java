@@ -525,10 +525,10 @@ public class Autonomous extends LinearOpMode {
                 packet.put("Twist Target Position", targetPosition);
                 double error = (twist.getCurrentPosition() - targetPosition);
                 if (error > 0){
-                    twist.setVelocity(350*(Math.cos(Math.PI * error/120)-1)/2);
+                    twist.setVelocity(400*(Math.cos(Math.PI * error/120)-1)/2);
                 } else{
                     error = 1.2*Math.abs(error);
-                    twist.setVelocity(450*-(Math.cos(Math.PI * error/120)-1)/2);
+                    twist.setVelocity(500*-(Math.cos(Math.PI * error/120)-1)/2);
                 }
                 return true;
             }

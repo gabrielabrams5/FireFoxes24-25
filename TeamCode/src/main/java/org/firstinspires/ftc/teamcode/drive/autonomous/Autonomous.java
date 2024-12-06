@@ -7,6 +7,7 @@ import com.acmerobotics.roadrunner.Action;
 import com.acmerobotics.roadrunner.AngularVelConstraint;
 import com.acmerobotics.roadrunner.MinVelConstraint;
 import com.acmerobotics.roadrunner.ParallelAction;
+
 import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.SequentialAction;
 import com.acmerobotics.roadrunner.SleepAction;
@@ -36,9 +37,9 @@ public class Autonomous extends LinearOpMode {
         public static final Pose2d BUCKET_BLUE = new Pose2d(48, -48, Math.toRadians(-45));
         public static final Pose2d BUCKET_RED = new Pose2d(-47, 49, Math.toRadians(135));
 
-        public static final Pose2d SAMPLE_NEUTRAL_BLUE_FAR = new Pose2d(36.5, -27.5, Math.toRadians(0));
-        public static final Pose2d SAMPLE_NEUTRAL_BLUE_MIDDLE = new Pose2d(46.5, -27.75, Math.toRadians(0));
-        public static final Pose2d SAMPLE_NEUTRAL_BLUE_CLOSE = new Pose2d(56, -27.5, Math.toRadians(0));
+        public static final Pose2d SAMPLE_NEUTRAL_BLUE_FAR = new Pose2d(35.5, -27.25, Math.toRadians(0));
+        public static final Pose2d SAMPLE_NEUTRAL_BLUE_MIDDLE = new Pose2d(44.5, -27.75, Math.toRadians(0));
+        public static final Pose2d SAMPLE_NEUTRAL_BLUE_CLOSE = new Pose2d(55, -27, Math.toRadians(0));
 
         public static final Pose2d SAMPLE_RED_FAR = new Pose2d(38, 27.5, Math.toRadians(0));
         public static final Pose2d SAMPLE_RED_MIDDLE = new Pose2d(46.5, 27.75, Math.toRadians(0));
@@ -53,16 +54,16 @@ public class Autonomous extends LinearOpMode {
         public static final Pose2d SAMPLE_BLUE_HANG = new Pose2d(0, -44, Math.toRadians(90));
 
 
-        public static final Pose2d SAMPLE_NEUTRAL_RED_FAR = new Pose2d(-36.5, 27.25, Math.toRadians(180));
-        public static final Pose2d SAMPLE_NEUTRAL_RED_MIDDLE = new Pose2d(-46.5, 27.25, Math.toRadians(180));
-        public static final Pose2d SAMPLE_NEUTRAL_RED_CLOSE = new Pose2d(-55.5, 27.25, Math.toRadians(180));
+        public static final Pose2d SAMPLE_NEUTRAL_RED_FAR = new Pose2d(-34, 25.5, Math.toRadians(180));
+        public static final Pose2d SAMPLE_NEUTRAL_RED_MIDDLE = new Pose2d(-44, 27, Math.toRadians(180));
+        public static final Pose2d SAMPLE_NEUTRAL_RED_CLOSE = new Pose2d(-56, 27, Math.toRadians(180));
     }
 
     MecanumDrive.Params parameters = new MecanumDrive.Params();
 
     enum StartingPosition {
         BLUE_BUCKET(new Pose2d(35, -62, 0)),
-        BLUE_DIVE(new Pose2d(-35, -62, Math.toRadians(180))),
+        BLUE_DIVE(new Pose2d(-12, -62, Math.toRadians(180))),
         RED_BUCKET(new Pose2d(-35, 62, Math.toRadians(180))),
         RED_DIVE(new Pose2d(35, 62, 0));
 
@@ -113,7 +114,7 @@ public class Autonomous extends LinearOpMode {
                     new SleepAction(0.5),
                     claw.clawOpen(),
                     twist.twistUpUp(),
-                    new SleepAction(0.75),
+                    new SleepAction(0.5),
                     extension.extensionIn(),
                     claw.clawClose(),
                     new SleepAction(0.75)
@@ -125,9 +126,9 @@ public class Autonomous extends LinearOpMode {
                     new ParallelAction(
                             bucketToSample.build(),
                             extension.extensionIn(),
-                            twist.twistDown(),
                             lift.liftFloat(),
-                            claw.clawOpen()
+                            claw.clawOpen(),
+                            twist.twistDown()
                     ),
                     GetSample()
             );
@@ -524,7 +525,7 @@ public class Autonomous extends LinearOpMode {
                 packet.put("Twist Target Position", targetPosition);
                 double error = (twist.getCurrentPosition() - targetPosition);
                 if (error > 0){
-                    twist.setVelocity(450*(Math.cos(Math.PI * error/120)-1)/2);
+                    twist.setVelocity(350*(Math.cos(Math.PI * error/120)-1)/2);
                 } else{
                     error = 1.2*Math.abs(error);
                     twist.setVelocity(450*-(Math.cos(Math.PI * error/120)-1)/2);
@@ -577,9 +578,11 @@ public class Autonomous extends LinearOpMode {
 
         public class TwistUpUp implements Action {
             private boolean initialized = false;
+            private int iterations = 0;
 
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
+                twist.setVelocity(600);
                 targetPosition = parameters.TWIST_UPUP;
                 return false;
             }

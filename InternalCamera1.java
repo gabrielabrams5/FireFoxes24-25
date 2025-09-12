@@ -21,7 +21,7 @@ public class InternalCamera1 extends LinearOpMode
     @Override
     public void runOpMode()
     {
-        //I have no idea what the next 6 lines do, but the code did it so I did it
+        //I have no idea what the next 6 lines do, but the code did it so I did it...
         int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
         phoneCam = OpenCvCameraFactory.getInstance().createInternalCamera(OpenCvInternalCamera.CameraDirection.BACK, cameraMonitorViewId);
 

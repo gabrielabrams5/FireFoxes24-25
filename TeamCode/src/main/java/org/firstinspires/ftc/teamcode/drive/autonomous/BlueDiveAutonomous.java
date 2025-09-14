@@ -24,9 +24,9 @@ public class BlueDiveAutonomous extends Autonomous{
         Autonomous.StartingPosition startPos = StartingPosition.BLUE_DIVE;
 
         Pose2d initialPose = startPos.getStartPos();
-        Autonomous.Robot robot = new Autonomous.Robot(
-                new Autonomous.Lift(hardwareMap), new Autonomous.Extension(hardwareMap), new Autonomous.Twist(hardwareMap),
-                new Autonomous.Claw(hardwareMap), new MecanumDrive(hardwareMap, initialPose));
+        Autonomous.Robot robot = new Robot(
+                new Intake(hardwareMap), new Launch(hardwareMap), new Load(hardwareMap),
+                new MecanumDrive(hardwareMap, initialPose));
 
         // Trajectories to select from
 
@@ -101,10 +101,11 @@ public class BlueDiveAutonomous extends Autonomous{
 
         if (isStopRequested()) return;
 
+        // Run Pathing
         Actions.runBlocking(
                 new ParallelAction(
-                        robot.twist.moveTwist(),
-                        robot.lift.moveLift(),
+                        robot.launch.moveLaunch(),
+                        robot.intake.moveIntake(),
                         actionToExecute
                 )
         );

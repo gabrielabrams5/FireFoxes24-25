@@ -13,8 +13,7 @@ import org.openftc.easyopencv.OpenCvCameraRotation;
 import org.openftc.easyopencv.OpenCvInternalCamera;
 import org.openftc.easyopencv.OpenCvPipeline;
 
-// USES ADVANCED EXAMPLES TO SHOW MORE FEATURES OF THE CAMERA
-// THIS EXAMPLE USES THE BACK CAMERA. FOR THE FRONT CAMERA, USE OpenCvInternal
+// uses back cam
 
 @TeleOp
 public class InternalCamera1Advanced extends LinearOpMode

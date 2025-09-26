@@ -82,10 +82,10 @@ public class AprilTagDetectionOpMode extends LinearOpMode {
             } else {
                 telemetry.addLine("No AprilTags detected");
                 telemetry.addLine();
-                telemetry.addLine("Make sure:")
-                telemetry.addLine("• AprilTags are in view")
-                telemetry.addLine("• Lighting is adequate")
-                telemetry.addLine("• Camera is focused")
+                telemetry.addLine("Make sure:");
+                telemetry.addLine("• AprilTags are in view");
+                telemetry.addLine("• Lighting is adequate");
+                telemetry.addLine("• Camera is focused");
             }
             
             // Manual driving controls

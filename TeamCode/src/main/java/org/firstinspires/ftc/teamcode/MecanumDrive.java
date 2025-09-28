@@ -41,7 +41,6 @@ import com.qualcomm.robotcore.hardware.VoltageSensor;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
-import org.firstinspires.ftc.teamcode.drive.DriveConstants;
 import org.firstinspires.ftc.teamcode.messages.DriveCommandMessage;
 import org.firstinspires.ftc.teamcode.messages.MecanumCommandMessage;
 import org.firstinspires.ftc.teamcode.messages.MecanumLocalizerInputsMessage;
@@ -91,28 +90,17 @@ public final class MecanumDrive {
         public double lateralVelGain = 0.0;
         public double headingVelGain = 1.0; // shared with turn
 
-        public final double CLAW_START = 0.9;
-        public final double AUTON_CLAW_INIT = 0.8;
-        public final double CLAW_OPEN = 0.25;
-        public final double CLAW_CLOSE = 0.95;
-        public final double EXTENSION_START = 0.2;
-        public final double EXTENSION_OUT = 0.9;
-        public final double EXTENSION_IN = 0.3;
-        public final double EXTENSION_MIDDLE = 0.5;
-        public final double EXTENSION_BUCKET = 0.65;
-        public final int TWIST_START = -10;
-        public final int TWIST_HIGH = 123;
-        public final int TWIST_SPECIMEN = 84;
-        public final int TWIST_UPUP = 160;
-        public final int TWIST_LOW = 0;
-        public final int TWIST_SPECIMEN = 75;
-        public final int LINEAR_SLIDE_START = 150;
-        public final int LINEAR_SLIDE_ROCK_BOTTOM = 100;
-        public final int LINEAR_SLIDE_MIN = 200;
-        public final int LINEAR_SLIDE_FLOAT = 350;
-        public final int LINEAR_SLIDE_BAR_DOWN = 1700;
-        public final int LINEAR_SLIDE_BAR_UP = 2250;
-        public final int LINEAR_SLIDE_MAX = 3150;
+        // Speed Parameters
+        public final float INTAKE_SPEED_IN = 1.0f;
+        public final float INTAKE_SPEED_OUT = -0.5f;
+        public final float LAUNCH_POWER = 1.0f;
+
+        // Control Parameters
+        public final int INTAKE_DIRECTION_START = 0;
+        public final boolean LAUNCH_START = false;
+        public final float LOAD_INIT = 0f;
+        public final float LOAD_LOAD = 1f;
+        public final float LOAD_RESET = 0f;
     }
 
     public static Params PARAMS = new Params();
@@ -272,7 +260,7 @@ public final class MecanumDrive {
 
         localizer = new ThreeDeadWheelLocalizer(hardwareMap, PARAMS.inPerTick);
 
-        FlightRecorder.write("MECANUM_PARAMS", PARAMS);
+//        FlightRecorder.write("MECANUM_PARAMS", PARAMS);
     }
 
     public void setDrivePowers(PoseVelocity2d powers) {

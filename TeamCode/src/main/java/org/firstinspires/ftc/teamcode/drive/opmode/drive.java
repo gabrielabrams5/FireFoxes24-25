@@ -133,8 +133,6 @@ public class drive extends LinearOpMode {
 //        twist.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 //        twist.setPower((1/20)*Math.sqrt(Math.abs(twist.getCurrentPosition() - targetTwistPosition)));
 
-        double previousRightJoystick = 0;
-
         // Robot is ready to start! Display message to screen
         telemetry.addData("Status", "Initialized");
         telemetry.update();

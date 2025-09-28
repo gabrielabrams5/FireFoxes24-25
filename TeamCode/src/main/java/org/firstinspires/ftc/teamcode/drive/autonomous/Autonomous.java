@@ -12,8 +12,6 @@ import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.SequentialAction;
 import com.acmerobotics.roadrunner.SleepAction;
 import com.acmerobotics.roadrunner.TrajectoryActionBuilder;
-import com.acmerobotics.roadrunner.TrajectoryBuilder;
-import com.acmerobotics.roadrunner.TrajectoryBuilderParams;
 import com.acmerobotics.roadrunner.TranslationalVelConstraint;
 import com.acmerobotics.roadrunner.ftc.Actions;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
@@ -34,6 +32,7 @@ import java.util.Arrays;
 @com.qualcomm.robotcore.eventloop.opmode.Autonomous(name = "BLUE_AUTONOMOUS", group = "Autonomous")
 public class Autonomous extends LinearOpMode {
     public static class Positions {
+        //TODO: CREATE NEW POSITIONAL CONSTANTS
         public static final Pose2d BUCKET_BLUE = new Pose2d(48, -48, Math.toRadians(-45));
         public static final Pose2d BUCKET_RED = new Pose2d(-47, 49, Math.toRadians(135));
 
@@ -52,7 +51,6 @@ public class Autonomous extends LinearOpMode {
         public static final Pose2d SAMPLE_BLUE_CLIP = new Pose2d(-50, -60, Math.toRadians(-90));
         public static final Pose2d SAMPLE_BLUE_CLIP_CLOSE = new Pose2d(-50, -48, Math.toRadians(-90));
         public static final Pose2d SAMPLE_BLUE_HANG = new Pose2d(0, -44, Math.toRadians(90));
-
 
         public static final Pose2d SAMPLE_NEUTRAL_RED_FAR = new Pose2d(-34, 25.5, Math.toRadians(180));
         public static final Pose2d SAMPLE_NEUTRAL_RED_MIDDLE = new Pose2d(-44, 27, Math.toRadians(180));
@@ -79,57 +77,41 @@ public class Autonomous extends LinearOpMode {
     }
 
     public class Robot {
-        Lift lift;
-        Extension extension;
-        Twist twist;
-        Claw claw;
+        Intake intake;
+        Launch launch;
+        Load load;
         MecanumDrive drive;
 
-        public Robot(Lift lift, Extension extension, Twist twist, Claw claw, MecanumDrive drive) {
-            this.lift = lift;
-            this.extension = extension;
-            this.twist = twist;
-            this.claw = claw;
+        public Robot(Intake intake, Launch launch, Load load, MecanumDrive drive) {
+            this.intake = intake;
+            this.launch = launch;
+            this.load = load;
             this.drive = drive;
         }
 
         public Action Init() {
             return new SequentialAction(
-                    claw.clawInit(),
-                    lift.liftInit(),
-                    twist.twistInit(),
-                    extension.extensionInit()
+                    intake.intakeInit(),
+                    launch.launchInit(),
+                    load.loadInit()
             );
         }
 
         public Action poseToBucket(TrajectoryActionBuilder poseToBucket) {
             return new SequentialAction(
                     new ParallelAction(
-                            poseToBucket.build(),
-                            lift.liftUp(),
-                            twist.twistUp()
+                            poseToBucket.build() // Movement + manipulators
                     ),
-                    new SleepAction(0.5),
-                    extension.extensionBucket(),
-                    new SleepAction(0.5),
-                    claw.clawOpen(),
-                    twist.twistUpUp(),
-                    new SleepAction(0.5),
-                    extension.extensionIn(),
-                    claw.clawClose(),
-                    new SleepAction(0.75)
+                    new SleepAction(0.5), // Sequential movements
+                    new SleepAction(0.1)
             );
         }
 
         public Action bucketToSample(TrajectoryActionBuilder bucketToSample) {
             return new SequentialAction(
-                    claw.clawClose(),
+                    new SleepAction(0.1),
                     new ParallelAction(
-                            bucketToSample.build(),
-                            extension.extensionIn(),
-                            lift.liftFloat(),
-                            claw.clawOpen(),
-                            twist.twistDown()
+                            bucketToSample.build()
                     ),
                     GetSample()
             );
@@ -137,63 +119,34 @@ public class Autonomous extends LinearOpMode {
 
         public Action GetSample() {
             return new SequentialAction(
-                    extension.extensionOut(),
                     new SleepAction(0.5),
-                    lift.liftBottom(),
                     new SleepAction(0.5),
-                    claw.clawClose(),
                     new SleepAction(0.5),
-                    lift.resetEncoders(),
                     new ParallelAction(
-                            twist.twistUp(),
-                            extension.extensionIn()
                     )
             );
         }
 
         public Action GetSampleLow() {
             return new SequentialAction(
-                    extension.extensionOut(),
+                    new SleepAction(0.5), // Sequential movements
                     new SleepAction(0.5),
-                    lift.liftBottom(),
-                    new SleepAction(0.5),
-                    claw.clawClose(),
-                    new SleepAction(0.5),
-                    lift.resetEncoders(),
-                    extension.extensionIn()
-            );
-        }
-        public Action PrepareClip() {
-            return new SequentialAction(
-                    claw.clawOpen()
-            );
-        }
-        public Action GetClip() {
-            return new SequentialAction(
-                    new SleepAction(0.5),
-                    claw.clawClose(),
                     new SleepAction(0.5)
             );
         }
 
         public Action bucketToSubmersible(TrajectoryActionBuilder bucketToSubmersible) {
             return new ParallelAction(
-                    bucketToSubmersible.build(),
-                    extension.extensionIn(),
-                    twist.twistDown(),
-                    lift.liftFloat(),
-                    claw.clawOpen()
+                    bucketToSubmersible.build()
             );
         }
 
         public Action poseToClip(TrajectoryActionBuilder poseToClip) {
             return new SequentialAction(
                     new ParallelAction(
-                            poseToClip.build(),
-                            lift.liftFloat()
+                            poseToClip.build()
                     ),
-                    new SleepAction(0.5),
-                    claw.clawOpen()
+                    new SleepAction(0.5)
             );
         }
 
@@ -209,524 +162,236 @@ public class Autonomous extends LinearOpMode {
             return new SequentialAction(
                     new ParallelAction(
                             clipInchFoward.build()
-                    ),
-                    GetClip()
+                    )
             );
         }
+
         public Action sampleToClip(TrajectoryActionBuilder sampleToClip) {
             return new SequentialAction(
                     new ParallelAction(
                             sampleToClip.build()
-                    ),
-                    PrepareClip()
-
+                    )
             );
         }
 
         public Action clipToHang(TrajectoryActionBuilder clipToHang) {
             return new SequentialAction(
                     new ParallelAction(
-                            clipToHang.build(),
-                            lift.liftBarUp()
+                            clipToHang.build()
                     ),
-                    lift.liftBarDown(),
-                    new SleepAction(0.75),
-                    claw.clawOpen()
+                    new SleepAction(0.75)
             );
         }
+
         public Action hangToSample(TrajectoryActionBuilder hangToSample) {
             return new SequentialAction(
                     new ParallelAction(
-                            hangToSample.build(),
-                            twist.twistDown(),
-                            lift.liftFloat(),
-                            claw.clawOpen()
+                            hangToSample.build()
                     ),
                     GetSample()
             );
         }
-
-
-
-
     }
 
-    public class Lift {
-        private final DcMotorEx linearSlide1;
-        private final DcMotorEx linearSlide2;
+    public class Intake {
+        private final DcMotorEx intake;
 
-        int linearSlide1TargetPosition = parameters.LINEAR_SLIDE_START;
-        int linearSlide2TargetPosition = parameters.LINEAR_SLIDE_START;
+        int intakeDirection = parameters.INTAKE_DIRECTION_START;
 
-        public Lift(HardwareMap hardwareMap) {
-            linearSlide1 = hardwareMap.get(DcMotorEx.class, "ls1");
-            linearSlide2 = hardwareMap.get(DcMotorEx.class, "ls2");
-            linearSlide1.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-            linearSlide2.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-            linearSlide1.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-            linearSlide2.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-            linearSlide1.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-            linearSlide2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-            linearSlide1.setDirection(DcMotorSimple.Direction.FORWARD);
-            linearSlide2.setDirection(DcMotorSimple.Direction.REVERSE);
+        public Intake(HardwareMap hardwareMap) {
+            intake = hardwareMap.get(DcMotorEx.class, "intake");
+            intake.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+            intake.setDirection(DcMotorSimple.Direction.FORWARD);
         }
 
-        public class LiftMove implements Action {
+        public class IntakeMove implements Action {
             private boolean initialized = false;
 
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
                 if (!initialized) {
-                    linearSlide1.setPower(0);
-                    linearSlide2.setPower(0);
+                    intake.setPower(0);
                     initialized = true;
                 }
 
-                double linearSlide1Pos = linearSlide1.getCurrentPosition();
-                double linearSlide2Pos = linearSlide2.getCurrentPosition();
-                packet.put("Linear Slide 1 Position", linearSlide1Pos);
-                packet.put("Linear Slide 1 Target Position", linearSlide1TargetPosition);
-                packet.put("Linear Slide 2 Target Position", linearSlide2TargetPosition);
-                packet.put("Linear Slide 2 Position", linearSlide2Pos);
-                double linearSlide1Error = Math.abs(linearSlide1TargetPosition - linearSlide1Pos);
-                double linearSlide2Error = Math.abs(linearSlide2TargetPosition - linearSlide2Pos);
-                boolean isAbove1 = linearSlide1Pos > linearSlide1TargetPosition;
-                boolean isAbove2 = linearSlide2Pos > linearSlide2TargetPosition;
-
-                if (linearSlide1Error > 50) {
-                    linearSlide1.setPower(isAbove1 ? -0.8 : 0.8);
-//                    linearSlide2.setPower(isAbove1 ? -0.8 : 0.8);
-                }
-                else {
-                    double slide1Power = 0.5 * linearSlide1Error / 50;
-                    linearSlide1.setPower(isAbove1 ? -slide1Power*slide1Power : slide1Power*slide1Power);
-//                    linearSlide2.setPower(isAbove1 ? -slide1Power*slide1Power : slide1Power*slide1Power);
-                }
-
-                if (linearSlide2Error > 50) {
-                    linearSlide2.setPower(isAbove2 ? -0.8 : 0.8);
+                if (intakeDirection == 1) {
+                    intake.setPower(parameters.INTAKE_SPEED_IN);
+                } else if (intakeDirection == -1) {
+                    intake.setPower(parameters.INTAKE_SPEED_OUT);
                 } else {
-                    double slide2Power = 0.5 * linearSlide2Error / 50;
-                    linearSlide2.setPower(isAbove2 ? -slide2Power*slide2Power : slide2Power*slide2Power);
+                    intake.setPower(0f);
                 }
+
                 return true;
             }
         }
 
-        public Action moveLift() {
-            return new LiftMove();
+        public Action moveIntake() {
+            return new IntakeMove();
         }
 
-        public class LiftUp implements Action {
-//            private boolean initialized = false;
-//
+        public class IntakeIn implements Action {
+
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
-                linearSlide1TargetPosition = parameters.LINEAR_SLIDE_MAX;
-                linearSlide2TargetPosition = parameters.LINEAR_SLIDE_MAX;
+                intakeDirection = 1;
                 return false;
             }
         }
 
-        public Action liftUp() {
-            return new LiftUp();
+        public Action intakeIn() {
+            return new IntakeIn();
         }
 
-        public class LiftBarUp implements Action {
-            //            private boolean initialized = false;
-//
+        public class IntakeOut implements Action {
+
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
-                linearSlide1TargetPosition = parameters.LINEAR_SLIDE_BAR_UP;
-                linearSlide2TargetPosition = parameters.LINEAR_SLIDE_BAR_UP;
+                intakeDirection = -1;
                 return false;
             }
         }
 
-        public Action liftBarUp() {
-            return new LiftBarUp();
+        public Action intakeOut() {
+            return new IntakeOut();
         }
-        public class LiftBarDown implements Action {
-            //            private boolean initialized = false;
-//
+
+        public class IntakeOff implements Action {
+
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
-                linearSlide1TargetPosition = parameters.LINEAR_SLIDE_BAR_DOWN;
-                linearSlide2TargetPosition = parameters.LINEAR_SLIDE_BAR_DOWN;
+                intakeDirection = 0;
                 return false;
             }
         }
 
-        public Action liftBarDown() {
-            return new LiftBarDown();
+        public Action intakeOff() {
+            return new IntakeOff();
         }
 
-        public class ResetEncoders implements Action {
-
-            @Override
-            public boolean run(@NonNull TelemetryPacket packet) {
-                linearSlide1.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-                linearSlide2.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-                linearSlide1.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-                linearSlide2.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-                return false;
-            }
-        }
-
-        public Action resetEncoders() {
-            return new ResetEncoders();
-        }
-
-        public class LiftFloat implements Action {
-            @Override
-            public boolean run(@NonNull TelemetryPacket packet) {
-                linearSlide1TargetPosition = parameters.LINEAR_SLIDE_FLOAT;
-                linearSlide2TargetPosition = parameters.LINEAR_SLIDE_FLOAT;
-                return false;
-            }
-        }
-
-        public Action liftFloat() {
-            return new LiftFloat();
-        }
-
-        public class LiftBottom implements Action {
-            @Override
-            public boolean run(@NonNull TelemetryPacket packet) {
-                linearSlide1TargetPosition = parameters.LINEAR_SLIDE_ROCK_BOTTOM;
-                linearSlide2TargetPosition = parameters.LINEAR_SLIDE_ROCK_BOTTOM;
-                return false;
-            }
-        }
-
-        public Action liftBottom() {
-            return new LiftBottom();
-        }
-
-        public class LiftDown implements Action {
+        public class IntakeInit implements Action {
             private boolean initialized = false;
 
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
-                linearSlide1TargetPosition = parameters.LINEAR_SLIDE_MIN;
-                linearSlide2TargetPosition = parameters.LINEAR_SLIDE_MIN;
                 return false;
             }
         }
 
-        public Action liftDown() {
-            return new LiftDown();
+        public Action intakeInit() {
+            return new IntakeInit();
+        }
+    }
+
+    public class Load {
+        private Servo load;
+
+        public Load(HardwareMap hardwareMap) {
+            load = hardwareMap.get(Servo.class, "load");
         }
 
-        public class LiftInit implements Action {
+        public class LoadLoad implements Action {
+            @Override
+            public boolean run(@NonNull TelemetryPacket packet) {
+                load.setPosition(parameters.LOAD_LOAD);
+                return false;
+            }
+        }
+
+        public Action loadLoad() {
+            return new LoadLoad();
+        }
+
+        public class LoadReset implements Action {
+            @Override
+            public boolean run(@NonNull TelemetryPacket packet) {
+                load.setPosition(parameters.LOAD_RESET);
+                return false;
+            }
+        }
+
+        public Action loadReset() {
+            return new LoadReset();
+        }
+
+        public class LoadInit implements Action {
+            @Override
+            public boolean run(@NonNull TelemetryPacket packet) {
+                load.setPosition(parameters.LOAD_INIT);
+                return false;
+            }
+        }
+
+        public Action loadInit() {
+            return new LoadInit();
+        }
+    }
+
+    public class Launch {
+        private final DcMotorEx launch;
+
+        boolean isLaunchActive = false;
+
+        public Launch(HardwareMap hardwareMap) {
+            launch = hardwareMap.get(DcMotorEx.class, "launch");
+            launch.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT);
+            launch.setDirection(DcMotorSimple.Direction.REVERSE);
+        }
+
+        public class LaunchMove implements Action {
             private boolean initialized = false;
 
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
                 if (!initialized) {
-                    linearSlide1.setPower(
-                        linearSlide1.getCurrentPosition() > parameters.LINEAR_SLIDE_START ? -0.5 : 0.5);
-                    linearSlide2.setPower(
-                        linearSlide2.getCurrentPosition() > parameters.LINEAR_SLIDE_START ? -0.5 : 0.5);
                     initialized = true;
                 }
 
-                double linearSlide1Position = linearSlide1.getCurrentPosition();
-                double linearSlide2Position = linearSlide2.getCurrentPosition();
-                boolean isLinearSlide1Initialized = false;
-                boolean isLinearSlide2Initialized = false;
-                packet.put("Linear Slide 1 Position", linearSlide1Position);
-                packet.put("Linear Slide 2 Position", linearSlide2Position);
-                packet.put("Linear Slide Target", parameters.LINEAR_SLIDE_START);
-                if (Math.abs(linearSlide1Position - parameters.LINEAR_SLIDE_START) < 5 || Math.abs(linearSlide2Position - parameters.LINEAR_SLIDE_START) < 5) {
-                    isLinearSlide1Initialized = true;
-                    linearSlide1.setPower(0);
-                    linearSlide2.setPower(0);
-                }
-                return !isLinearSlide1Initialized;
-            }
-        }
-
-        public Action liftInit() {
-            return new LiftInit();
-        }
-    }
-
-    public class Claw {
-        private Servo claw;
-
-        public Claw(HardwareMap hardwareMap) {
-            claw = hardwareMap.get(Servo.class, "claw");
-        }
-
-        public class ClawClose implements Action {
-            @Override
-            public boolean run(@NonNull TelemetryPacket packet) {
-                claw.setPosition(parameters.CLAW_CLOSE);
-                return false;
-            }
-        }
-
-        public Action clawClose() {
-            return new ClawClose();
-        }
-
-        public class ClawOpen implements Action {
-            @Override
-            public boolean run(@NonNull TelemetryPacket packet) {
-                claw.setPosition(parameters.CLAW_OPEN);
-                return false;
-            }
-        }
-
-        public Action clawOpen() {
-            return new ClawOpen();
-        }
-
-        public class ClawInit implements Action {
-            @Override
-            public boolean run(@NonNull TelemetryPacket packet) {
-                claw.setPosition(parameters.AUTON_CLAW_INIT);
-                return false;
-            }
-        }
-
-        public Action clawInit() {
-            return new ClawInit();
-        }
-    }
-
-    public class Twist {
-        private final DcMotorEx twist;
-        private int targetPosition = parameters.TWIST_START;
-
-        public Twist(HardwareMap hardwareMap) {
-            twist = hardwareMap.get(DcMotorEx.class, "twist");
-            twist.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
-            twist.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
-            twist.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
-            twist.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
-            twist.setDirection(DcMotorSimple.Direction.REVERSE);
-        }
-
-        public class TwistMove implements Action {
-            private boolean initialized = false;
-
-            @Override
-            public boolean run(@NonNull TelemetryPacket packet) {
-                if (!initialized) {
-                    double error = (twist.getCurrentPosition() - targetPosition);
-                    error = error > 0 ? error : Math.abs(error*1.2);
-                    twist.setVelocity(300*-(Math.cos(Math.PI * error/120)-1)/2);
-                    initialized = true;
+                if (isLaunchActive) {
+                    launch.setPower(parameters.LAUNCH_POWER);
                 }
 
-                double pos = twist.getCurrentPosition();  // Assumes both slides at same pos
-                packet.put("Twist Position", pos);
-                packet.put("Twist Target Position", targetPosition);
-                double error = (twist.getCurrentPosition() - targetPosition);
-                if (error > 0){
-                    twist.setVelocity(400*(Math.cos(Math.PI * error/120)-1)/2);
-                } else{
-                    error = 1.2*Math.abs(error);
-                    twist.setVelocity(500*-(Math.cos(Math.PI * error/120)-1)/2);
-                }
                 return true;
             }
         }
 
-        public Action moveTwist() {
-            return new TwistMove();
+        public Action moveLaunch() {
+            return new LaunchMove();
         }
 
-        public class TwistUp implements Action {
+        public class LaunchOn implements Action {
+
+            @Override
+            public boolean run(@NonNull TelemetryPacket packet) {
+                isLaunchActive = true;
+               return false;
+            }
+        }
+
+        public Action launchOn() {
+            return new LaunchOn();
+        }
+
+        public class LaunchOff implements Action {
+
+            @Override
+            public boolean run(@NonNull TelemetryPacket packet) {
+                isLaunchActive = false;
+                return false;
+            }
+        }
+
+        public class LaunchInit implements Action {
             private boolean initialized = false;
 
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
-                targetPosition = parameters.TWIST_HIGH;
-                return false;
-//                if (!initialized) {
-//                    double error = (twist.getCurrentPosition() - parameters.TWIST_HIGH);
-//                    error = error > 0 ? error : Math.abs(error*1.2);
-//                    twist.setPower(-(Math.cos(Math.PI * error/120)-1)/2);
-//                    initialized = true;
-//                }
-//
-//                double pos = twist.getCurrentPosition();  // Assumes both slides at same pos
-//                packet.put("Twist Position", pos);
-//                packet.put("Twist Target Position", parameters.TWIST_HIGH);
-//                if (Math.abs(pos - parameters.TWIST_HIGH) > 5) {    // Keep raising lift if it hasn't reached max height yet
-//                    double error = (twist.getCurrentPosition() - parameters.TWIST_HIGH);
-//                    if (error > 0){
-//                        twist.setPower((Math.cos(Math.PI * error/120)-1)/2);
-//                    } else{
-//                        error = 1.2*Math.abs(error);
-//                        twist.setPower(-(Math.cos(Math.PI * error/120)-1)/2);
-//                    }
-//                    return true;
-//                } else {
-//                    // If lift is at desired position, stop raising
-//                    twist.setPower(0.01);
-//                    return false;
-//                }
-            }
-        }
-
-        public Action twistUp() {
-            return new TwistUp();
-        }
-
-        public class TwistUpUp implements Action {
-            private boolean initialized = false;
-            private int iterations = 0;
-
-            @Override
-            public boolean run(@NonNull TelemetryPacket packet) {
-                twist.setVelocity(600);
-                targetPosition = parameters.TWIST_UPUP;
                 return false;
             }
         }
 
-        public Action twistUpUp() {
-            return new TwistUpUp();
-        }
-        public class TwistClip implements Action {
-            private boolean initialized = false;
-
-            @Override
-            public boolean run(@NonNull TelemetryPacket packet) {
-                targetPosition = parameters.TWIST_SPECIMEN;
-                return false;
-            }
-        }
-
-        public Action twistClip() {
-            return new TwistClip();
-        }
-
-        public class TwistDown implements Action {
-            private boolean initialized = false;
-            private int iterations = 0;
-
-            @Override
-            public boolean run(@NonNull TelemetryPacket packet) {
-                targetPosition = parameters.TWIST_LOW;
-                while(iterations < 20) {
-                    twist.setPower(-1);
-                    iterations++;
-                    return true;
-                }
-                return false;
-//                if (!initialized) {
-//                    double error = (twist.getCurrentPosition() - parameters.TWIST_LOW);
-//                    twist.setPower((Math.cos(Math.PI * error/120)-1)/2);
-//                    initialized = true;
-//                }
-//
-//                double pos = twist.getCurrentPosition();
-//                packet.put("Twist Position", pos);
-//                packet.put("Twist Target Position", parameters.TWIST_LOW);
-//                if (pos > parameters.TWIST_LOW) {    // Keep lowering lift if it hasn't reached max height yet
-//                    double error = (twist.getCurrentPosition() - parameters.TWIST_LOW);
-//                    twist.setPower((Math.cos(Math.PI * error/120)-1)/2);
-//                    return true;
-//                } else {
-//                    // If lift is at desired position, stop lowering
-//                    twist.setPower(0);
-//                    return false;
-//                }
-            }
-        }
-
-        public Action twistDown() {
-            return new TwistDown();
-        }
-
-        public class TwistInit implements Action {
-            private boolean initialized = false;
-
-            @Override
-            public boolean run(@NonNull TelemetryPacket packet) {
-                if (!initialized) {
-                    twist.setPower(
-                            twist.getCurrentPosition() > parameters.TWIST_START ? -0.2 : 0.2);
-                    initialized = true;
-                }
-
-                double twistPosition = twist.getCurrentPosition();
-                boolean isTwistInitialized = false;
-                packet.put("Twist Position", twistPosition);
-                packet.put("Twist Target Position", parameters.TWIST_START);
-                if (Math.abs(twistPosition - parameters.TWIST_START) < 5) {
-                    isTwistInitialized = true;
-                    twist.setPower(0);
-                }
-
-                return !isTwistInitialized;
-            }
-        }
-
-        public Action twistInit() {
-            return new TwistInit();
-        }
-    }
-
-
-    public class Extension {
-        private Servo extension;
-
-        public Extension(HardwareMap hardwareMap) {
-            extension = hardwareMap.get(Servo.class, "extension");
-        }
-
-        public class ExtensionIn implements Action {
-            @Override
-            public boolean run(@NonNull TelemetryPacket packet) {
-                extension.setPosition(parameters.EXTENSION_IN);
-                return false;
-            }
-        }
-
-        public Action extensionIn() {
-            return new ExtensionIn();
-        }
-
-        public class ExtensionBucket implements Action {
-            @Override
-            public boolean run(@NonNull TelemetryPacket packet) {
-                extension.setPosition(parameters.EXTENSION_BUCKET);
-                return false;
-            }
-        }
-
-        public Action extensionBucket() {
-            return new ExtensionBucket();
-        }
-
-        public class ExtensionOut implements Action {
-            @Override
-            public boolean run(@NonNull TelemetryPacket packet) {
-                extension.setPosition(parameters.EXTENSION_MIDDLE);
-                return false;
-            }
-        }
-
-        public Action extensionOut() {
-            return new ExtensionOut();
-        }
-
-        public class ExtensionInit implements Action {
-            @Override
-            public boolean run(@NonNull TelemetryPacket packet) {
-                extension.setPosition(parameters.EXTENSION_START);
-                return false;
-            }
-        }
-
-        public Action extensionInit() {
-            return new ExtensionInit();
+        public Action launchInit() {
+            return new LaunchInit();
         }
     }
 
@@ -736,8 +401,8 @@ public class Autonomous extends LinearOpMode {
 
         Pose2d initialPose = startPos.getStartPos();
         Robot robot = new Robot(
-                new Lift(hardwareMap), new Extension(hardwareMap), new Twist(hardwareMap),
-                new Claw(hardwareMap), new MecanumDrive(hardwareMap, initialPose));
+                new Intake(hardwareMap), new Launch(hardwareMap), new Load(hardwareMap),
+                new MecanumDrive(hardwareMap, initialPose));
 
         // Trajectories to select from
 
@@ -864,9 +529,6 @@ public class Autonomous extends LinearOpMode {
                 .setTangent(Math.toRadians(250))
                 .splineToLinearHeading(Positions.SAMPLE_BLUE_MIDDLE, Math.toRadians(160));
 
-
-
-
         TrajectoryActionBuilder blueMiddleBlueBlockToBucket = robot.drive.actionBuilder(Positions.SAMPLE_NEUTRAL_BLUE_MIDDLE)
                 .setTangent(Math.toRadians(90))
                 .splineToLinearHeading(Positions.BUCKET_BLUE, Math.toRadians(45));
@@ -876,7 +538,6 @@ public class Autonomous extends LinearOpMode {
         TrajectoryActionBuilder blueCloseBlueBlockToBucket = robot.drive.actionBuilder(Positions.SAMPLE_NEUTRAL_BLUE_CLOSE)
                 .setTangent(Math.toRadians(120))
                 .splineToLinearHeading(Positions.BUCKET_BLUE, Math.toRadians(45));
-
 
         // TODO: Correctly invert the rest of these trajectories
 
@@ -967,11 +628,12 @@ public class Autonomous extends LinearOpMode {
 
         if (isStopRequested()) return;
 
+        // Run Pathing
         Actions.runBlocking(
                 new ParallelAction(
-                        robot.twist.moveTwist(),
-                    robot.lift.moveLift(),
-                    actionToExecute
+                        robot.intake.moveIntake(),
+                        robot.launch.moveLaunch(),
+                        actionToExecute
                 )
         );
     }

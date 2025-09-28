@@ -18,79 +18,51 @@ import org.firstinspires.ftc.teamcode.drive.PoseStorage;
 @TeleOp(name="Basic Drive", group="Linear OpMode")
 public class drive extends LinearOpMode {
     /*
-     * Extension:
-     *   OUT    - Right Bumper
-     *   IN     - Left Bumper
-     *   ADJUST - Right Stick X
-     * Claw:
-     *   OPEN   - X Button
-     *   CLOSE  - Y Button
-     * Twist:
-     *   HIGH   - Right dPad
-     *   MIDDLE - Right Trigger + Left dPad
-     *   LOW    - Left dPad
-     *   ADJUST - Right Stick Y
-     * Linear Slide:
-     *   UP     - Up dPad
-     *   DOWN   - Down dPad
-     *   ADJUST - Left Stick Y
+     * Intake:
+     *    IN (TOGGLE ON/OFF)  - A
+     *    OUT (TOGGLE ON/OFF) - B
+     *    FLIP                - X
+     *    STOP                - Y
+     * Launcher:
+     *    ON/OFF (TOGGLE)     - Right Bumper
+     *    ON/OFF (HOLD)       - Right Trigger
+     * Load:
+     *    LOAD                - Dpad Right
+     *    RESET               - Dpad Left
      * Macros:
-     *   OUT+HIGH+UP     - Left Trigger + Up dPad
-     *   IN+LOW+DOWN     - Left Trigger + Down dPad
-     *   OUT+HIGH+UP (Specimen)     - Right Trigger + Up dPad
-     *   IN+LOW+DOWN (Specimen)     - Right Trigger + Down dPad
+     *    AIM + SHOOT         - Dpad Up
      */
 
     @Override
     public void runOpMode() {
         ElapsedTime runtime = new ElapsedTime();
 
-        // ########################################################################################
-        // !!!            IMPORTANT Drive Information. Test your motor directions.            !!!!!
-        // ########################################################################################
-
-        // Initialize drive motor variables
+        // Initialize and configure drive motor variables
         DcMotor leftFrontDrive = hardwareMap.get(DcMotor.class, "lfMtr");
         DcMotor leftBackDrive = hardwareMap.get(DcMotor.class, "lbMtr");
         DcMotor rightFrontDrive = hardwareMap.get(DcMotor.class, "rfMtr");
         DcMotor rightBackDrive = hardwareMap.get(DcMotor.class, "rbMtr");
-        // Set drive motor directions
         leftFrontDrive.setDirection(DcMotor.Direction.REVERSE);
         leftBackDrive.setDirection(DcMotor.Direction.REVERSE);
         rightFrontDrive.setDirection(DcMotor.Direction.FORWARD);
         rightBackDrive.setDirection(DcMotor.Direction.FORWARD);
-        // Set drive motor zero power behaviors
         leftFrontDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         leftBackDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         rightFrontDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         rightBackDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
-        // Initialize linear slide motors
-        DcMotor linearSlide1 = hardwareMap.get(DcMotor.class, "ls1");
-        DcMotor linearSlide2 = hardwareMap.get(DcMotor.class, "ls2");
-        // Reset linear slide encoders
-        linearSlide1.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        linearSlide2.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        linearSlide1.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        linearSlide2.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        linearSlide1.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        linearSlide2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        // Initialize and configure intake motor
+        DcMotor intake = hardwareMap.get(DcMotor.class, "intake");
+        intake.setDirection(DcMotor.Direction.FORWARD);
+        intake.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
-
-        // Set direction of linear slides
-        linearSlide1.setDirection(DcMotorSimple.Direction.FORWARD);
-        linearSlide2.setDirection(DcMotorSimple.Direction.REVERSE);
-
-        // Initialize twist motor
-        DcMotorEx twist = hardwareMap.get(DcMotorEx.class, "twist");
-        twist.setDirection(DcMotorSimple.Direction.REVERSE);
-        twist.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        twist.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        twist.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        // Initialize and configure launch motor
+        DcMotorEx launch = hardwareMap.get(DcMotorEx.class, "launch");
+        launch.setDirection(DcMotorSimple.Direction.REVERSE);
+        launch.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
 
         // Initialize servos
-        Servo claw = hardwareMap.get(Servo.class, "claw");
-        Servo extension = hardwareMap.get(Servo.class, "extension");
+        Servo load = hardwareMap.get(Servo.class, "load");
 
         // Initialize IMU
         IMU imu = hardwareMap.get(IMU.class, "imu");
@@ -103,35 +75,16 @@ public class drive extends LinearOpMode {
 
         imu = hardwareMap.get(IMU.class, "imu");
 
-        // Init localizer
+        // Initialize localizer and robot position variables. Get position constants
         MecanumDrive drive = new MecanumDrive(hardwareMap, PoseStorage.currentPose);
-
-        // Initialize mechanical position constants
         MecanumDrive.Params parameters = new MecanumDrive.Params();
-        // Initialize mechanical position variables
-        int linearSlide1Target = parameters.LINEAR_SLIDE_START;
-        int linearSlide2Target = parameters.LINEAR_SLIDE_START;
-
-        double targetTwistPosition = 0;
-        double previousRightJoystick = 0;
-        // Initialize robot position variables
         double robotAngle = 0;
         YawPitchRollAngles robotOrientation;
 
-        // Set linear slides to start positions
-//        linearSlide1.setTargetPosition(linearSlide1Target);
-//        linearSlide2.setTargetPosition(linearSlide2Target);
-//        linearSlide1.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-//        linearSlide2.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-//        linearSlide1.setPower(0.5);
-//        linearSlide2.setPower(0.5);
-        // Set servos to start positions
-//        claw.setPosition(parameters.CLAW_START);
-//        extension.setPosition(parameters.EXTENSION_START);
-
-//        twist.setTargetPosition(parameters.TWIST_START);
-//        twist.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-//        twist.setPower((1/20)*Math.sqrt(Math.abs(twist.getCurrentPosition() - targetTwistPosition)));
+        // Initialize control parameters
+        int intakeDirection = parameters.INTAKE_DIRECTION_START;
+        boolean isLaunchActive = parameters.LAUNCH_START;
+        boolean previousRightTrigger = false;
 
         // Robot is ready to start! Display message to screen
         telemetry.addData("Status", "Initialized");
@@ -147,7 +100,6 @@ public class drive extends LinearOpMode {
             // Get Pose
             drive.updatePoseEstimate();
             Pose2d myPose = drive.pose;
-
 
             // Get IMU data
             robotOrientation = imu.getRobotYawPitchRollAngles();
@@ -175,6 +127,7 @@ public class drive extends LinearOpMode {
             double lateral_real = targetx;
             double axial_real = targety;
 
+            // commented out perspective driving controls
 //            double axial_real = lateral_target * Math.cos(robotAngle) + axial_target * Math.sin(robotAngle);
 //            double lateral_real = lateral_target * -Math.sin(robotAngle) + axial_target * Math.cos(robotAngle);
             double yaw = gamepad1.right_stick_x;
@@ -210,126 +163,55 @@ public class drive extends LinearOpMode {
                 rightBackPower /= max;
             }
 
-            // Linear Slides
-            if (gamepad2.dpad_up && !(gamepad2.right_trigger > 0.5)) {
-                linearSlide1Target = parameters.LINEAR_SLIDE_MAX;
-                linearSlide2Target = parameters.LINEAR_SLIDE_MAX;
-            } else if (gamepad2.dpad_down && !(gamepad2.left_trigger > 0.5)) {
-                linearSlide1Target = parameters.LINEAR_SLIDE_FLOAT;
-                linearSlide2Target = parameters.LINEAR_SLIDE_FLOAT;
+            // Intake
+            if (gamepad1.a) {
+                intakeDirection = intakeDirection == 1 ? 0 : 1;
+            } else if (gamepad1.b) {
+                intakeDirection = intakeDirection == -1 ? 0 : -1;
+            } else if (gamepad1.x) {
+                intakeDirection = intakeDirection == 1 ? -1 : 1;
+            } else if (gamepad1.y) {
+                intakeDirection = 0;
             }
 
-            // Linear Slide Adjustments
-            int linearAdjustment = (int) (gamepad2.left_stick_y * 30);
-            linearSlide1Target -= linearAdjustment;
-            linearSlide2Target -= linearAdjustment;
-
-            // Give Linear Slides target positions and power
-            linearSlide1.setTargetPosition(linearSlide1Target);
-            linearSlide2.setTargetPosition(linearSlide2Target);
-            linearSlide1.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-            linearSlide2.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-            linearSlide1Target = Math.min(linearSlide1Target, parameters.LINEAR_SLIDE_MAX + 300);
-            linearSlide2Target = Math.min(linearSlide2Target, parameters.LINEAR_SLIDE_MAX + 300);
-
-            if (Math.abs(linearSlide1.getCurrentPosition() - linearSlide1Target) >= 5){
-                linearSlide1.setPower(0.8);
+            // Power Intake
+            if (intakeDirection == 1) {
+                intake.setPower(parameters.INTAKE_SPEED_IN);
+            } else if (intakeDirection == -1) {
+                intake.setPower(parameters.INTAKE_SPEED_OUT);
             } else {
-                linearSlide1.setPower(0.8);
+                intake.setPower(0f);
             }
-            if (Math.abs(linearSlide2.getCurrentPosition() - linearSlide2Target) >= 5){
-                linearSlide2.setPower(0.8);
+
+            // Launch
+//            if (gamepad1.right_trigger > 0.5f && !previousRightTrigger) {
+//                previousRightTrigger = true;
+//                isLaunchActive = !isLaunchActive;
+//            } else if (gamepad1.right_trigger < 0.5f) {
+//                previousRightTrigger = false;
+//                isLaunchActive = gamepad1.right_bumper;
+//            }
+
+            // Power Launch
+            if (gamepad1.right_trigger > 0.5f) {
+                launch.setPower(parameters.LAUNCH_POWER);
             } else {
-                linearSlide2.setPower(0.8);
+                launch.setPower(0);
             }
 
-            // Extension Servo
-            if (gamepad2.right_bumper) {
-                extension.setPosition(parameters.EXTENSION_OUT);
-            } else if (gamepad2.left_bumper) {
-                extension.setPosition(parameters.EXTENSION_IN);
-            } else if (gamepad2.right_stick_x != 0){
-                extension.setPosition(extension.getPosition() + (gamepad2.right_stick_x / 64));
+            // Loader Servo
+            if (gamepad1.dpad_right) {
+                load.setPosition(parameters.LOAD_LOAD);
+            } else if (gamepad1.dpad_left) {
+                load.setPosition(parameters.LOAD_RESET);
             }
 
-            // Twist Servo
-            if (gamepad2.dpad_right && !(gamepad2.right_trigger > 0.5)) {
-                targetTwistPosition = parameters.TWIST_LOW;
-            } else if (gamepad2.dpad_left && gamepad2.right_trigger < 0.5) {
-                targetTwistPosition = parameters.TWIST_HIGH;
-            } else if (gamepad2.right_stick_y != 0 && !(gamepad2.right_trigger > 0.5)){
-                targetTwistPosition -= (gamepad2.right_stick_y*2);
+            // Aim + Launch Macro TODO: WRITE MACROS
+            if (gamepad1.dpad_up) {
+                //win
             }
 
-            twist.setTargetPosition((int)targetTwistPosition);
-            twist.setMode(DcMotorEx.RunMode.RUN_TO_POSITION);
-
-            double error = (twist.getCurrentPosition() - targetTwistPosition);
-
-            if (error > 0){
-                twist.setVelocity(150*(Math.cos(Math.PI * error/120)-1)/2);
-            } else{
-                error = 1.2*Math.abs(error);
-                twist.setVelocity(450*-(Math.cos(Math.PI * error/120)-1)/2);
-            }
-//            error = error > 0 ? error : Math.abs(error*1.3);
-//
-//            error = Math.min(119, error);
-//
-//            double twistPower = - (Math.cos(Math.PI * error/120)-1)/2;
-
-//            twist.setVelocity(twistPower*350);
-
-//            previousRightJoystick = gamepad2.right_stick_y;
-
-            // Claw Servo
-            if (gamepad2.b) {
-                claw.setPosition(parameters.CLAW_OPEN);
-            } else if (gamepad2.x) {
-                claw.setPosition(parameters.CLAW_CLOSE);
-            }
-
-            if (gamepad2.a){
-                linearSlide1.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-                linearSlide2.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-            }
-
-            // Out+Up Macro
-            if (gamepad2.right_trigger > 0.5 && gamepad2.dpad_up) {
-                extension.setPosition(parameters.EXTENSION_MIDDLE);
-                linearSlide1Target = parameters.LINEAR_SLIDE_MAX;
-                linearSlide2Target = parameters.LINEAR_SLIDE_MAX;
-                targetTwistPosition = parameters.TWIST_HIGH;
-                twist.setPower(1);
-            }
-
-            // Bucket In+Down Macro
-            if (gamepad2.left_trigger > 0.5 && gamepad2.dpad_down) {
-                extension.setPosition(parameters.EXTENSION_IN);
-                linearSlide1Target = parameters.LINEAR_SLIDE_FLOAT;
-                linearSlide2Target = parameters.LINEAR_SLIDE_FLOAT;
-                targetTwistPosition = parameters.TWIST_LOW;
-                twist.setPower(1);
-            }
-
-            // Specimen Height for Twist
-            if (gamepad2.right_trigger > 0.5 && gamepad2.dpad_left) {
-                extension.setPosition(parameters.EXTENSION_IN);
-                targetTwistPosition = parameters.TWIST_SPECIMEN;
-            }
-
-            // Specimen Out+Up Macro
-            if (gamepad2.right_trigger > 0.5 && gamepad2.dpad_right) {
-                targetTwistPosition = parameters.TWIST_SPECIMEN;
-            }
-
-            // Specimen In+Down Macro
-            if (gamepad2.right_trigger > 0.5 && gamepad2.dpad_up) {
-                extension.setPosition(parameters.EXTENSION_IN);
-                targetTwistPosition = parameters.TWIST_SPECIMEN;
-            }
-
-            // Send calculated power to wheels, convert power to rpm
+            // Power Wheels
             leftFrontDrive.setPower(leftFrontPower);
             rightFrontDrive.setPower(rightFrontPower);
             leftBackDrive.setPower(leftBackPower);
@@ -341,14 +223,8 @@ public class drive extends LinearOpMode {
                 telemetry.addData("Position", "x: " + myPose.position.x + "y: " + myPose.position.y);
                 telemetry.addData("Heading", "Angle: " + myPose.heading.toDouble());
             }
-            telemetry.addData("Vert slides", "Position: " + linearSlide1.getCurrentPosition());
-            telemetry.addData("Extension", "Position: " + extension.getPosition());
-            telemetry.addData("Claw", "Position: " + claw.getPosition());
-            telemetry.addData("Twist", "Position: " + twist.getCurrentPosition());
-            telemetry.addData("Twist", "Target Position: " + targetTwistPosition);
-//            telemetry.addData("Twist", "Twist Power: " + twistPower);
-            telemetry.addData("Linear Slides", "LS1 Position: " + linearSlide1.getCurrentPosition() + "LS2 Position: " + linearSlide2.getCurrentPosition());
-            telemetry.addData("Linear Slides", "LS2 Target: " + linearSlide1Target + "LS2 Target: " + linearSlide2Target);
+            telemetry.addData("Intake", "Direction: " + intakeDirection);
+            telemetry.addData("Launch", "Active: " + isLaunchActive);
             telemetry.addData("Front left/Right", "%4.2f, %4.2f", leftFrontPower, rightFrontPower);
             telemetry.addData("Back  left/Right", "%4.2f, %4.2f", leftBackPower, rightBackPower);
             telemetry.update();
